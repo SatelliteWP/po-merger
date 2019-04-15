@@ -100,7 +100,7 @@ The optional parameters supported in the test mode are `--mark-copy-as-fuzzy/mca
 The package comes with the test PO files, where you can add your own strings to test.
 
 ## Maintainers
-This project was created and is maintained by [SatelliteWP](https://www.satellitewp.com). The project was started during an internship by Pavel Zaharciuc.
+This project was created and is maintained by [SatelliteWP](https://www.satellitewp.com/en). The project was started during an internship by Pavel Zaharciuc.
 
 ## Contributing
 Ideas are welcome.
