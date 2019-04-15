@@ -1,0 +1,27 @@
+# Translation of Plugins - Mark As Fuzzy - Stable (latest release) in French (France)
+# This file is distributed under the same license as the Plugins - Mark As Fuzzy  - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: +0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: GlotPress/2.4.0-alpha\n"
+"Language: fr\n"
+"Project-Id-Version: Plugins - Mark As Fuzzy - Stable (latest release)\n"
+
+#: index.php:10
+msgid "SHOULD BE marked as FUZZY - ONE"
+msgstr "IL DOIT ÊTRE marqué comme FUZZY - UN"
+
+#: index.php:20
+msgid "SHOULD NOT be marked as FUZZY"
+msgid_plural "SHOULD NOT be marked as FUZZY"
+msgstr[0] "IL NE DOIT PAS être marquée comme FUZZY"
+msgstr[1] "ILS NE DOIVENT PAS être marquées comme FUZZY"
+
+#: index.php:30
+msgctxt "Test the tag application"
+msgid "SHOULD BE marked as FUZZY - TWO"
+msgstr "IL DOIT ÊTRE marqué comme FUZZY - DEUX"

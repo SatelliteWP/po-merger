@@ -1,0 +1,35 @@
+# Translation of Plugins - Fuzzy Strings - Stable (latest release) in French (France)
+# This file is distributed under the same license as the Plugins - Fuzzy Strings - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: +0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: GlotPress/2.4.0-alpha\n"
+"Language: fr\n"
+"Project-Id-Version: Plugins - Fuzzy Strings - Stable (latest release)\n"
+
+#: index.php:10
+msgid "It contains E-MAIL, it SHOULD BE marked as FUZZY - ONE"
+msgstr "IL contient EMAIL, IL DOIT être marqué comme FUZZY - UN"
+
+#: index.php:20
+msgid "It doesn't contain a fuzzy string, it SHOULDN'T BE MARKED - ONE"
+msgstr "Il ne contient pas une chaine fuzzy, il NE DOIT PAS ÊTRE marqué - UN"
+
+#: index.php:30
+msgid "It contains TROUBLESHOOTER, it SHOULD BE marked as FUZZY"
+msgstr "IL contient DÉPANNEUR, IL DOIT être marqué comme FUZZY"
+
+#: index.php:40
+#: index.php:50
+msgid "It doesn't contain a fuzzy string, it SHOULDN'T BE MARKED - DEUX"
+msgstr "Il ne contient pas une chaine fuzzy, il NE DOIT PAS ÊTRE marqué - DEUX"
+
+#: index.php:60
+msgid "It contains E-MAIL, it SHOULD BE marked as FUZZY - TWO"
+msgid_plural "They contain E-MAIL, they SHOULD BE marked as FUZZY - TWO"
+msgstr[0] "IL contient EMAIL, IL DOIT être marqué comme FUZZY - TWO"
+msgstr[1] "ILS contiennent EMAIL, ILS DOIVENT être marqués comme FUZZY - TWO"
