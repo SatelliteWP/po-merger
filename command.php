@@ -19,6 +19,7 @@ if ( !defined( 'WP_CLI' ) ) return;
 class Po_Command extends \WP_CLI_Command {
 
      /**
+     * 
      * Merge of two PO files of similar languages.
      * 
      * Basic parameters: <base-locale>, <copy-locale>, <URL> or <core>
@@ -40,8 +41,9 @@ class Po_Command extends \WP_CLI_Command {
      * Or
      * wp po merge fr-ca fr 5.0
      * 
+     * @when before_wp_load
      */
-    function merge( $args = array(), $assoc_args = array(), $verbose = true ) 
+     function merge( $args = array(), $assoc_args = array(), $verbose = true ) 
     {
         $merger = new Merger( $args, $assoc_args );
         
