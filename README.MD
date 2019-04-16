@@ -11,7 +11,7 @@ The project requires the latest version of WP-CLI. Start by updating WP-CLI in t
 
 Then run the following command to install the project:
 
-    wp package install https://github.com/SatelliteWP/po-merger
+    wp package install satelliteWP/po-merger
 
 
 ## Using
