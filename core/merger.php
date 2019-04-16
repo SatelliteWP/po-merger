@@ -32,6 +32,7 @@ class Merger {
     const STATUS      = 'status';
     const DIFF_ONLY   = 'diff-only';
     const USERNAME    = 'username';
+    const ENV         = 'env';
     const TEST        = 'test';
 
     /**
@@ -51,9 +52,16 @@ class Merger {
     const URL_END  = '/default/export-translations';
 
     /**
-     * Plugin release.
+     * Plugin releases.
      */
-    const PLUGIN_RELEASE = 'stable';
+    const RELEASE_STABLE = 'stable';
+    const RELEASE_DEV = 'dev';
+
+    /**
+     * Types of the URL
+     */
+    const TYPE_PLUGINS = 'plugins';
+    const TYPE_THEMES = 'themes';
 
     /**
      * Folder in the root directory where the downloaded base locale and the copy locale *.po files will be saved.
@@ -73,7 +81,7 @@ class Merger {
     /**
      * Valid parameters.
      */
-    protected $valid_params = array( self::BASE_LOCALE, self::COPY_LOCALE, self::PO_SOURCE, self::FUZZY, self::MCAF, self::MCAF_SHORT, self::STATUS, self::DIFF_ONLY, self::USERNAME, self::TEST );
+    protected $valid_params = array( self::BASE_LOCALE, self::COPY_LOCALE, self::PO_SOURCE, self::FUZZY, self::MCAF, self::MCAF_SHORT, self::STATUS, self::DIFF_ONLY, self::USERNAME, self::ENV, self::TEST );
 
     /**
      * Valid filters for the download URL.
@@ -426,7 +434,7 @@ class Merger {
                 $result = false;
             }
 
-            if ( ! in_array( $path_parts[1], array( 'themes', 'plugins' ) ) ) 
+            if ( ! in_array( $path_parts[1], array( self::TYPE_THEMES, self::TYPE_PLUGINS ) ) ) 
             {
                 $this->error_message = __( 'The URL type (plugins or themes) could not be detected.' );
                 $result = false;
@@ -503,7 +511,7 @@ class Merger {
             {
                 $this->error_message = __( 'The copy locale is invalid.' );
             }
-            else
+            elseif ( is_null( $downloaded_po_paths['path_base'] ) && is_null( $downloaded_po_paths['path_copy'] ) )
             {
                 $this->error_message = __( 'The parameters have errors.' );
             }
@@ -577,16 +585,16 @@ class Merger {
      * @param string $core Major core version, or null if the "core" parameter is not set.
      * @param boolean $is_base Indicates if it's a base locale.
      * 
-     * @return string $save_path Save path of the downloaded *.po file.
+     * @return string $result Save path of the downloaded *.po file.
      */
     public function download_po( $name, $type, $locale, $core, $is_base ) 
     {
-        $save_path = null;
+        $result = null;
         
         // For local testing, the file from the "tests" folder will be read.
         if ( isset( $this->params[self::TEST] ) ) 
         {
-            $save_path = $this->tests_folder_path . $locale . '/' . $name . '-' . $locale . '.po';
+            $result = $this->tests_folder_path . $locale . '/' . $name . '-' . $locale . '.po';
         }
         else 
         {
@@ -597,6 +605,18 @@ class Merger {
                 self::USERNAME  => ( isset( $this->params[self::USERNAME] ) ) ? $this->params[self::USERNAME] : null
             );
             
+            $env = null;
+
+            // Verify if the environment was specified
+            if ( isset( $this->params[self::ENV] ) ) 
+            {
+                $env = $this->params[self::ENV];
+            }
+            else 
+            {
+                $env = self::RELEASE_STABLE;
+            }
+            
             // Parametres for the path of the file and the download URL.
             $params = array(
                 'name'    => $name,
@@ -605,21 +625,39 @@ class Merger {
                 'core'    => $core,
                 'is_base' => $is_base,
                 'filters' => $filters,
-                'plugin_release'       => self::PLUGIN_RELEASE,
+                'plugin_release'       => $env,
                 'download_folder_path' => $this->download_folder_path
             );
             
             $download_url = $this->create_po_url( $params );
-            
-            if ( in_array( 'HTTP/1.1 200 OK', get_headers( $download_url ) ) )
-            {
-                $save_path = $this->set_temp_path( $params );
+            $save_path = $this->set_temp_path( $params );
                 
-                file_put_contents( $save_path, @fopen( $download_url, 'r' ) );
+            // Verify if the file was downloaded successfully.
+            if ( file_put_contents( $save_path, @fopen( $download_url, 'r' ) ) !== 0 ) 
+            {
+                $result = $save_path;
+            }
+            else
+            {
+                // If there was an error and it's a plugin, try to download the dev release. 
+                if ( !isset( $this->params[self::ENV] ) ) 
+                {
+                    if ( $type == self::TYPE_PLUGINS ) 
+                    {
+                        $params['plugin_release'] = self::RELEASE_DEV;
+
+                        $download_url = $this->create_po_url( $params );
+                    
+                        if ( file_put_contents( $save_path, @fopen( $download_url, 'r' ) ) !== 0 ) 
+                        {
+                            $result = $save_path;
+                        }
+                    }
+                }
             }
         }
         
-        return $save_path;
+        return $result;
     }
 
     /**
@@ -632,7 +670,9 @@ class Merger {
     public function create_po_url( $url_params = array() ) 
     {
         $result = null;
-        $url_middle = null;
+        $env    = null;
+
+        $url_middle = 'wp-' . $url_params['type'] . '/'. $url_params['name'] . '/';
         
         if ( !is_null( $url_params['core'] ) ) 
         {
@@ -640,17 +680,12 @@ class Merger {
         }
         else 
         {
-            if ( $url_params['type'] == 'plugins' ) 
+            if ( $url_params['type'] == self::TYPE_PLUGINS ) 
             {
-                $url_middle = 'wp-' . $url_params['type'] . '/'. $url_params['name'] . '/' . 
-                    $url_params['plugin_release'] . '/';
-            }
-            elseif ( $url_params['type'] == 'themes' ) 
-            {
-                $url_middle = 'wp-' . $url_params['type'] . '/'. $url_params['name'] . '/' .
-                    $url_params['plugin_release'] . '/';
+                $url_middle .= $url_params['plugin_release'] . '/';
             }
         }
+        
         $result = self::URL_BASE . $url_middle . $url_params['locale'] . self::URL_END;
 
         // If it's the base locale, set the filters. 
