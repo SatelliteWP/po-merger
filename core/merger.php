@@ -552,7 +552,7 @@ class Merger {
         // Create, if necessary, the folder where the downloaded *.po files will be saved.
         if( !is_dir( $this->download_folder_path ) ) 
         {
-            mkdir( $this->download_folder_path, 077 );
+            mkdir( $this->download_folder_path, 0770 );
         }
         
         // If the process is not on a core.
