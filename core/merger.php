@@ -298,7 +298,7 @@ class Merger {
                 {
                     case $param == self::PO_SOURCE:
                         $source = $params[self::PO_SOURCE];
-                    
+    
                         $this->is_url = $this->is_url( $source );
                 
                         if ( $this->is_url ) 
@@ -414,7 +414,7 @@ class Merger {
     }
 
     /**
-     * Verifies that an URL is a valid plugin/theme homepage URL.
+     * Verifies that an URL is a valid plugin/theme homepage URL/translation URL.
      * 
      * @param string $url URL to validate.
      * 
@@ -523,14 +523,25 @@ class Merger {
         // Download the base and copy locale *.po files.
         $downloaded_po_paths = $this->download_pos( $url, $base_locale, $copy_locale, $core );
 
-        // If the *.po files were downloaded successfully. 
+        // If the *.po files were downloaded successfully, extract the contents of the downloaded *.po files into arrays.
         if ( !is_null( $downloaded_po_paths['path_base'] ) && !is_null( $downloaded_po_paths['path_copy'] ) ) 
         {   
-            // Extract the contents of the downloaded *.po fils into arrays.
-            $this->base_content = file( $downloaded_po_paths['path_base'] );
-            $this->copy_content = file( $downloaded_po_paths['path_copy'] );
+            // Verify if an empty *.po file was downloaded (ex: the filter "untranslated" is applied to a project without untranslated strings).
+            $content_as_string = file_get_contents( $downloaded_po_paths['path_base'] );
+            $content_as_string = rtrim( $content_as_string );
+            $parts = explode( PHP_EOL, $content_as_string );
             
-            $result = true;
+            if ( count( $parts ) > 12 ) 
+            {
+                $this->base_content = file( $downloaded_po_paths['path_base'] );
+                $this->copy_content = file( $downloaded_po_paths['path_copy'] );
+                
+                $result = true;
+            }
+            else 
+            {
+                $this->error_message = __( 'The query could not generate any strings to merge. Please check if the project is already fully translated.' );
+            }
         }
         else
         {
@@ -568,7 +579,7 @@ class Merger {
     /**
      * Downloads and saves the base locale, the copy locale *po files.
      * 
-     * @param string $url The homepage URL of the plugin/theme.
+     * @param string $url The homepage URL/translation URL of the plugin/theme.
      * @param string $base_locale Locale where the translations from the copy locale will be used.
      * @param string $copy_locale Locale used to get the translations that are not present in the base locale.
      * @param string $core Major core version, or null if the parameter is not set.
@@ -589,7 +600,7 @@ class Merger {
         // If the process is not on a core.
         if ( is_null( $core ) ) 
         {
-            // Get the name and the type from the plugin's/theme's homepage URL.
+            // Get the name and the type from the plugin's/theme's homepage URL/translation URL.
             $name = $this->get_name_from_url( $url );
             $type = $this->get_type_from_url( $url );
         }
@@ -701,7 +712,6 @@ class Merger {
     public function create_po_url( $url_params = array() ) 
     {
         $result = null;
-        $env    = null;
 
         $url_middle = 'wp-' . $url_params['type'] . '/'. $url_params['name'] . '/';
         
@@ -776,7 +786,7 @@ class Merger {
     }
     
     /**
-     * Gets the name of a plugin/theme from its homepage URL.
+     * Gets the name of a plugin/theme from its homepage URL/translation URL.
      * 
      * @param string $url Homepage URL of a plugin/theme.
      * 
@@ -785,10 +795,10 @@ class Merger {
     public function get_name_from_url( $url ) 
     {
         $result = null;
-        
         $parts = explode( '/', parse_url( $url )['path'] );
+        $size = count( $parts );
 
-        if ( count( $parts ) >= 3 ) 
+        if ( $size  >= 3 ) 
         {
             if ( !$this->is_translate_host ) 
             {
@@ -796,22 +806,22 @@ class Merger {
             }
             else
             {
-                if ( count( $parts ) === 4 ) 
+                if ( $size <= 5 ) 
                 {
                     $result = $parts[3];
                 }
-                elseif ( count( $parts ) === 7 ) 
+                elseif ( $size <= 7 ) 
                 {
                     $result = $parts[5];
                 }
             }
         }
-        
+
         return $result;
     }
 
     /**
-     * Gets the type (plugin/theme) from the plugin's/theme's homepage URL.
+     * Gets the type (plugin/theme) from the plugin's/theme's homepage URL/translation URL.
      * 
      * @param string $url Homepage URL of a plugin/theme.
      * 
@@ -831,7 +841,7 @@ class Merger {
             }
             else
             {
-                if (  $parts[2] == self::TRANS_URL_PLUGINS ) 
+                if ( $parts[2] == self::TRANS_URL_PLUGINS ) 
                 {
                     $result = self::URL_PLUGINS;
                 }
@@ -841,7 +851,7 @@ class Merger {
                 }
             }
         }
-
+        
         return $result;
     }
 
@@ -884,7 +894,7 @@ class Merger {
                 }
             }
         }
-        
+   
         return $result;
     }
 
