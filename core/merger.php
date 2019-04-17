@@ -55,13 +55,19 @@ class Merger {
      * Plugin releases.
      */
     const RELEASE_STABLE = 'stable';
-    const RELEASE_DEV = 'dev';
+    const RELEASE_DEV    = 'dev';
 
     /**
-     * Types of the URL
+     * Type defined in the homepage URL of a plugin/theme.
      */
-    const TYPE_PLUGINS = 'plugins';
-    const TYPE_THEMES = 'themes';
+    const URL_PLUGINS    = 'plugins';
+    const URL_THEMES     = 'themes';
+    
+    /**
+     * Type defined in the translation URL of a plugin/theme.
+     */
+    const TRANS_URL_PLUGINS = 'wp-plugins';
+    const TRANS_URL_THEMES  = 'wp-themes';
 
     /**
      * Folder in the root directory where the downloaded base locale and the copy locale *.po files will be saved.
@@ -139,11 +145,6 @@ class Merger {
     protected $result_name = null;
 
     /**
-     * Indicates if the source of the *.po file is an URL
-     */
-    protected $is_url;
-    
-    /**
      * Indicates if the "mark-copy-as-fuzy" parameter is set.
      */
     protected $is_mcaf = false;
@@ -152,6 +153,16 @@ class Merger {
      * Specifies if the downloaded *.po files should be kept in the "downloads" folder.
      */
     protected $keep_downloaded_pos = false;
+
+    /**
+     * Indicates if the domain is translate.wordpress.org.
+     */
+    protected $is_translate_host = false;
+    
+    /**
+     * Indicates if the source of the *.po file is an URL
+     */
+    protected $is_url;
     
     /**
      * Constructor. 
@@ -414,13 +425,20 @@ class Merger {
         $result = true;
 
         $url = strtolower( $url );
-        $url_parts = parse_url( $url);
+        $url_parts = parse_url( $url );
         
         // Host validation.
-        if ( ! $this->endsWith( $url_parts['host'], "wordpress.org" ) ) 
+        if ( !$this->endsWith( $url_parts['host'], "wordpress.org" ) ) 
         {
             $this->error_message = __( 'The host (' . $url_parts['host'] . ') in the URL is invalid.' );
             $result = false;
+        }
+        else
+        {
+            if ( $url_parts['host'] == 'translate.wordpress.org' ) 
+            {
+                $this->is_translate_host = true;
+            }
         }
 
         // Path validation.
@@ -434,13 +452,26 @@ class Merger {
                 $result = false;
             }
 
-            if ( ! in_array( $path_parts[1], array( self::TYPE_THEMES, self::TYPE_PLUGINS ) ) ) 
+            if ( !in_array( $path_parts[1], array( self::URL_THEMES, self::URL_PLUGINS ) ) && $path_parts[2] != self::TRANS_URL_PLUGINS ) 
             {
-                $this->error_message = __( 'The URL type (plugins or themes) could not be detected.' );
-                $result = false;
+                $is_trans_url_themes = false;
+                
+                if ( isset( $path_parts[4] ) ) 
+                {
+                    if ( $path_parts[4] == self::TRANS_URL_THEMES ) 
+                    {
+                        $is_trans_url_themes = true;
+                    }
+                }
+                
+                if ( !$is_trans_url_themes ) 
+                {
+                    $this->error_message = __( 'The URL type (plugins or themes) could not be detected.' );
+                    $result = false;
+                }
             }
 
-            if ( empty( $path_parts[2] ) ) 
+            if ( empty( $path_parts[2] ) && empty( $path_parts[3] ) )
             {
                 $this->error_message = __( 'The theme/plugin slug in the URL cannot be empty.' );
                 $result = false;
@@ -642,7 +673,7 @@ class Merger {
                 // If there was an error and it's a plugin, try to download the dev release. 
                 if ( !isset( $this->params[self::ENV] ) ) 
                 {
-                    if ( $type == self::TYPE_PLUGINS ) 
+                    if ( $type == self::URL_PLUGINS ) 
                     {
                         $params['plugin_release'] = self::RELEASE_DEV;
 
@@ -680,7 +711,7 @@ class Merger {
         }
         else 
         {
-            if ( $url_params['type'] == self::TYPE_PLUGINS ) 
+            if ( $url_params['type'] == self::URL_PLUGINS ) 
             {
                 $url_middle .= $url_params['plugin_release'] . '/';
             }
@@ -759,7 +790,21 @@ class Merger {
 
         if ( count( $parts ) >= 3 ) 
         {
-            $result = $parts[2];
+            if ( !$this->is_translate_host ) 
+            {
+                $result = $parts[2];
+            }
+            else
+            {
+                if ( count( $parts ) === 4 ) 
+                {
+                    $result = $parts[3];
+                }
+                elseif ( count( $parts ) === 7 ) 
+                {
+                    $result = $parts[5];
+                }
+            }
         }
         
         return $result;
@@ -780,9 +825,23 @@ class Merger {
         
         if ( count( $parts ) >= 2 ) 
         {
-            $result = $parts[1];
+            if ( !$this->is_translate_host ) 
+            {
+                $result = $parts[1];
+            }
+            else
+            {
+                if (  $parts[2] == self::TRANS_URL_PLUGINS ) 
+                {
+                    $result = self::URL_PLUGINS;
+                }
+                elseif ( $parts[4] == self::TRANS_URL_THEMES ) 
+                {
+                    $result = self::URL_THEMES;
+                }
+            }
         }
-        
+
         return $result;
     }
 
