@@ -51,11 +51,19 @@ class Po_Extractor extends Po {
     /**
      * Constructor.
      */
-    public function __construct( $po_content )
+    public function __construct(){}
+
+    /**
+     * Sets the parameter.
+     *
+     * @param array $po_content Content of a *po file.
+     */
+    public function initialize( $po_content ) 
     {
         $this->po_content = $po_content;
     }
-
+    
+    
     /**
      * Extracts the msg strings into their corresponding arrays.
      * 

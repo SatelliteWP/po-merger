@@ -50,6 +50,14 @@ class Po_Command extends \WP_CLI_Command {
         if ( $merger->has_valid_parameters() )
         {   
             $merger->start();
+            
+            if ( !is_null( $merger->get_warning_messages() ) ) 
+            {
+                foreach( $merger->get_warning_messages() as $warning_message ) 
+                {
+                    \WP_CLI::warning( $warning_message );
+                }
+            }
         }
         else 
         { 

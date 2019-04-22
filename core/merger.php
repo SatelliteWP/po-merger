@@ -58,23 +58,40 @@ class Merger {
     const RELEASE_DEV    = 'dev';
 
     /**
-     * Constants of the type defined in the homepage URL of a plugin/theme.
+     * Type defined in the homepage URL of a plugin/theme.
      */
     const URL_PLUGINS    = 'plugins';
     const URL_THEMES     = 'themes';
     
     /**
-     * Constants of the type defined in the translation URL of a plugin/theme.
+     * Type defined in the translation URL of a plugin/theme.
      */
     const TRANS_URL_PLUGINS = 'wp-plugins';
     const TRANS_URL_THEMES  = 'wp-themes';
 
     /**
-     * Constants of the core sub-projects defined in the download URL of a *po file.
+     * Core sub-projects defined in the download URL of a *po file.
      */
     const CORE_CC = 'cc';
     const CORE_ADMIN = 'admin';
     const CORE_ADMIN_NET = 'admin/network';
+
+    /**
+     * Full names of a core sub-projects
+     */
+    const CORE_CC_FULL = 'Continents & Cities';
+    const CORE_ADMIN_FULL = 'Administration';
+    const CORE_ADMIN_NET_FULL = 'Network Admin';
+
+    /**
+     * Total number of *.po files of the core project (core plus sub-projects).
+     */
+    const CORE_PROJECT = 4;
+
+    /**
+     * Lenght of the header of the *.po file.
+     */
+    const PO_HEADER_LENGTH = 12; 
 
     /**
      * Folder in the root directory where the downloaded base locale and the copy locale *.po files will be saved.
@@ -107,6 +124,11 @@ class Merger {
     protected $core_sub_projects = array( self::CORE_CC, self::CORE_ADMIN, self::CORE_ADMIN_NET );
     
     /**
+     * Full names of the core sub-projects.
+     */
+    protected $core_sub_projects_names = array( self::CORE_CC_FULL, self::CORE_ADMIN_FULL, self::CORE_ADMIN_NET_FULL );
+
+    /**
      * Received parameters.
      */
     protected $params = array();
@@ -132,6 +154,11 @@ class Merger {
     protected $fuzzy_strings = array();
 
     /**
+     * Parameters of the result file(s).
+     */
+    protected $result_params = array();
+
+    /**
      * Major core version for the download URL (ex: 5.0.x).
      */
     protected $major_core = null;
@@ -151,6 +178,11 @@ class Merger {
      */
     protected $error_message = null;
     
+    /**
+     * Condition(s) that require user's attention.
+     */
+    protected $warning_messages = null;
+
     /**
      * Name of the result file.
      */
@@ -216,12 +248,33 @@ class Merger {
      */
     public function merge() 
     {   
-        $po_extractor  = new Po_Extractor( $this->copy_content );
-
-        $po_merger = new Po_Merger( $this->base_content, $po_extractor->extract_msgs(), 
-                                    $this->fuzzy_strings, $this->is_mcaf );
+        $po_extractor  = new Po_Extractor();
+        $po_merger     = new Po_Merger( $this->fuzzy_strings, $this->is_mcaf );
         
-        $this->create_result_file( $po_merger->merge_po(), $this->result_name );
+        $merged_content = null;
+        
+        // If the process is on a core.
+        if ( is_array( $this->copy_content[0] ) ) 
+        {
+            $merged_content = array();
+            
+            for ( $i = 0; $i < count ( $this->copy_content ); ++$i ) 
+            {
+                $po_extractor->initialize( $this->copy_content[$i] );
+                $po_merger->initialize( $this->base_content[$i], $po_extractor->extract_msgs() );
+
+                $merged_content[] = $po_merger->merge_po();
+            }
+        }
+        else 
+        {
+            $po_extractor->initialize( $this->copy_content );
+            $po_merger->initialize( $this->base_content, $po_extractor->extract_msgs() );
+
+            $merged_content = $po_merger->merge_po();
+        }
+        
+        $this->create_result_file( $merged_content, $this->result_name );
     }
 
     /**
@@ -396,6 +449,16 @@ class Merger {
     }
 
     /**
+     * Returns the warning messages.
+     * 
+     * @return string Warning message(s).
+     */
+    public function get_warning_messages()
+    {
+        return $this->warning_messages;
+    }
+
+    /**
      * Returns the path of the download folder in the root of the package.
      * 
      * @return string Folder path.
@@ -543,9 +606,20 @@ class Merger {
             {
                 $count_empty = 0;
                 
+                // Temporary variables for the *.po paths and core project names.
+                $temp_path_base = array();
+                $temp_path_copy = array();
+                
+                $temp_core_sub_projects       = $this->core_sub_projects;
+                $temp_core_sub_projects_names = $this->core_sub_projects_names;
+
+                // Reinitialize the variables.
+                $this->core_sub_projects = array();
+                $this->core_sub_projects_names = array();
+                
                 for ( $i = 0; $i < count( $downloaded_po_paths['path_base'] ); ++$i ) 
                 {
-                    if ( !$this->is_not_empty_po( $downloaded_po_paths['path_base'][$i] ) ) 
+                    if ( $this->is_empty_po( $downloaded_po_paths['path_base'][$i] ) ) 
                     {
                         // If the downloaded files shouldn't be kept, delete the empty *.po file (since the copy locale isn't needed anymore, delete it as well). 
                         if ( !$this->keep_downloaded_pos && !isset( $this->params[self::TEST] ) ) 
@@ -553,21 +627,40 @@ class Merger {
                             unlink( $downloaded_po_paths['path_base'][$i] );
                             unlink( $downloaded_po_paths['path_copy'][$i] );
                         }
-                        
-                        // Remove the paths from the arrays.
-                        array_splice( $downloaded_po_paths['path_base'], $i, 1 );
-                        array_splice( $downloaded_po_paths['path_copy'], $i, 1 );
-                        
+
+                        // Set the error messages and if it's a sub-project, remove it from the arrays.
+                        if ( $i !== 0 ) 
+                        {
+                            $this->warning_messages[] = __( '"' . $temp_core_sub_projects_names[$i - 1] . '" is fully translated or contains only waiting translations. ' .  
+                                                           'No file will be generated.' );
+                        }
+                        else 
+                        {
+                            $this->warning_messages[] = __( 'The core is fully translated or contains only waiting translations. No file will be generated.' );
+                        }
+
                         ++$count_empty;
+                    }
+                    else 
+                    {
+                        $temp_path_base[] = $downloaded_po_paths['path_base'][$i];
+                        $temp_path_copy[] = $downloaded_po_paths['path_copy'][$i];
+
+                        if ( $i !== 0 ) 
+                        {
+                            $this->core_sub_projects[] = $temp_core_sub_projects[$i - 1];
+                            $this->core_sub_projects_names[] = $temp_core_sub_projects_names[$i - 1];
+                        }
                     }
                 }
 
-                if ( $count_empty !== count( $downloaded_po_paths['path_base'] ) )
+                // If not all *.po files of the base locale are empty.
+                if ( $count_empty < self::CORE_PROJECT )
                 {   
-                    for ( $i = 0; $i < count( $downloaded_po_paths['path_base'] ); ++$i ) 
+                    for ( $i = 0; $i < count( $temp_path_base ); ++$i ) 
                     {
-                        $this->base_content[] = file( $downloaded_po_paths['path_base'][$i] );
-                        $this->copy_content[] = file( $downloaded_po_paths['path_copy'][$i] );
+                        $this->base_content[] = file( $temp_path_base[$i] );
+                        $this->copy_content[] = file( $temp_path_copy[$i] );
                     }
                     
                     $result = true;
@@ -575,7 +668,7 @@ class Merger {
             }
             else 
             {
-                if ( $this->is_not_empty_po( $downloaded_po_paths['path_base'] ) ) 
+                if ( !$this->is_empty_po( $downloaded_po_paths['path_base'] ) ) 
                 {
                     $this->base_content = file( $downloaded_po_paths['path_base'] );
                     $this->copy_content = file( $downloaded_po_paths['path_copy'] );
@@ -584,6 +677,9 @@ class Merger {
                 }
             }
             // End of the verification.
+
+            // Set the name of the result file(s).
+            $this->result_name = $this->set_result_name();
         }
         else
         {
@@ -606,7 +702,7 @@ class Merger {
         {
             $this->delete_downloaded_pos( $downloaded_po_paths );
         }
-        
+
         return $result;
     }
 
@@ -653,7 +749,7 @@ class Merger {
      * 
      * @return boolean True if valid. Otherwise, false.
      */
-    public function is_not_empty_po( $po_file_path ) 
+    public function is_empty_po( $po_file_path ) 
     {
         $result = false;
 
@@ -661,14 +757,11 @@ class Merger {
         $content_as_string = rtrim( $content_as_string );
         
         $parts = explode( PHP_EOL, $content_as_string );
-        
-        if ( count( $parts ) > 12 ) 
-        {
-            $result = true;
-        }
-        else 
+
+        if ( count( $parts ) == self::PO_HEADER_LENGTH ) 
         {
             $this->error_message = __( 'The query could not generate any strings to merge. Please check if the project is already fully translated.' );
+            $result = true;
         }
 
         return $result;
@@ -699,9 +792,14 @@ class Merger {
             $type = $this->get_type_from_url( $url );
         }
 
-        // Set the name under which the result file will be saved.
-        $this->result_name = $this->set_result_name( $name, $type, $base_locale, $core );
-    
+        // Set the parameters of the result file(s).
+        $this->result_params = array(
+            'name' => $name,
+            'type' => $type,
+            'core' => $core,
+            'locale' => $base_locale
+        );
+        
         $path_base = null;
         $path_copy = null;
         
@@ -712,7 +810,7 @@ class Merger {
             'copy_locale' => $copy_locale,
             'core'        => $core
         );
-        
+
         // Download and save the *.po files.
         $result = $this->download_locales_pos( $params );
 
@@ -809,7 +907,7 @@ class Merger {
             }
 
             $po_params['filters'] = $filters;
-            $po_params['plugin_release'] = $env;
+            $po_params['release'] = $env;
             $download_urls = $this->create_po_url( $po_params );
             
             $po_params['download_folder_path'] = $this->download_folder_path;
@@ -818,6 +916,14 @@ class Merger {
             if ( !is_null( $po_params['core'] ) ) 
             {
                 $result['core'] = $this->download_multiple_pos( $save_paths['core'], $download_urls['core'] );
+
+                if ( is_null( $result['core'] ) ) 
+                {
+                    $po_params['release'] = self::RELEASE_DEV;
+                    $download_urls = $this->create_po_url( $po_params );
+
+                    $result['core'] = $this->download_multiple_pos( $save_paths['core'], $download_urls['core'] );
+                }
             }
             else 
             {
@@ -854,7 +960,7 @@ class Merger {
             {
                 if ( $params['type'] == self::URL_PLUGINS ) 
                 {
-                    $params['plugin_release'] = self::RELEASE_DEV;
+                    $params['release'] = self::RELEASE_DEV;
 
                     $download_url = $this->create_po_url( $params )['plugin_theme'];
                 
@@ -912,13 +1018,20 @@ class Merger {
         
         if ( !is_null( $url_params['core'] ) ) 
         {
-            $url_middle = 'wp' . '/' . $url_params['core'] . '/';
+            if ( $url_params['release'] == self::RELEASE_DEV) 
+            {
+                $url_middle = 'wp' . '/'. $url_params['release'] .'/';
+            }
+            else 
+            {
+                $url_middle = 'wp' . '/' . $url_params['core'] . '/';
+            }
         }
         else 
         {
             if ( $url_params['type'] == self::URL_PLUGINS ) 
             {
-                $url_middle .= $url_params['plugin_release'] . '/';
+                $url_middle .= $url_params['release'] . '/';
             }
         }
         
@@ -966,7 +1079,7 @@ class Merger {
             }
             
         }
-        
+
         return $result;
     }
 
@@ -1013,7 +1126,7 @@ class Merger {
         }
         
         $result = $download_url;
-        
+
         return $result;
     }
     
@@ -1165,25 +1278,32 @@ class Merger {
 
     /**
      * Sets the name of the result file.
-     * 
-     * @param string $name Name of the plugin/theme.
-     * @param string $type Type (plugin/theme).
-     * @param string $locale
-     * @param string $core Major core version, or null if the parameter is not set.
-     * 
+     *
      * @return string $result The name of the result file.
      */
-    public function set_result_name( $name, $type, $locale, $core ) 
+    public function set_result_name() 
     {
         $result = null;
         
-        if ( !is_null( $core ) ) 
+        if ( !is_null( $this->result_params['core'] ) ) 
         {
-            $result = 'wp-' . $core . '-' . $locale . '-merged.po';
+            $result = array();
+            
+            $result[] = 'wp-' . $this->result_params['core'] . '-' . $this->result_params['locale'] . '-merged.po';
+
+            foreach ( $this->core_sub_projects as $sub_project ) 
+            {
+                if ( $sub_project == self::CORE_ADMIN_NET ) 
+                {
+                    $sub_project = 'admin-network';
+                }
+                
+                $result[] = 'wp-' . $this->result_params['core']. '-' . $sub_project . '-' . $this->result_params['locale'] . '-merged.po';
+            }
         }
         else 
         {
-            $result = 'wp-' . $type . '-' . $name . '-' . $locale . '-merged.po';
+            $result = 'wp-' . $this->result_params['type'] . '-' . $this->result_params['name'] . '-' . $this->result_params['locale'] . '-merged.po';
         }
         
         return $result;
@@ -1207,8 +1327,8 @@ class Merger {
 
         if ( !is_null( $params['core'] ) ) 
         {
-            $core_urls = array();
-            $core_urls[] = $path_base . $params['core'] . '-' . $params['locale'] . '-temp.po';
+            $core_paths = array();
+            $core_paths[] = $path_base . $params['core'] . '-' . $params['locale'] . '-temp.po';
             
             foreach( $this->core_sub_projects as $core_sub_project ) 
             {
@@ -1217,10 +1337,10 @@ class Merger {
                     $core_sub_project = 'admin-network';
                 }
                 
-                $core_urls[] = $path_base . $params['core'] . '-' . $core_sub_project . '-' . $params['locale'] . '-temp.po';
+                $core_paths[] = $path_base . $params['core'] . '-' . $core_sub_project . '-' . $params['locale'] . '-temp.po';
             }
-            
-            $result['core'] = $core_urls; 
+
+            $result['core'] = $core_paths; 
         }
         else 
         {
@@ -1241,15 +1361,40 @@ class Merger {
         $content_as_string = null;
 
         // Transform the array's contents into string.
-        foreach ( $merged_content as $string ) 
+        if ( is_array( $merged_content[0] ) ) 
         {
-            $content_as_string .= $string;
+            for ( $i = 0; $i < count( $merged_content ); ++$i ) 
+            {
+                $content_as_string = $this->array_into_string( $merged_content[$i] );
+                $filename = getcwd() . '/' . $result_name[$i];
+                file_put_contents( $filename, rtrim ( $content_as_string ) );
+            }
+        }
+        else 
+        {
+            $content_as_string = $this->array_into_string( $merged_content );
+            $filename = getcwd() . '/' . $result_name;
+            file_put_contents( $filename, rtrim ( $content_as_string ) );
+        }
+    }
+
+    /**
+     * Transforms an array into string.
+     * 
+     * @param array Array to transform.
+     *
+     * @return string Array as string.
+     */
+    public function array_into_string( $array ) 
+    {
+        $result = null;
+
+        foreach ( $array as $string ) 
+        {
+            $result .= $string;
         }
 
-        // Set the file name path based on where the command "wp po merge" was executed.
-        $filename = getcwd() . '/' . $result_name;
-        
-        file_put_contents( $filename, rtrim ( $content_as_string ) );
+        return $result;
     }
 }
 function __( $text ) {return $text;}
