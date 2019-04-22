@@ -32,6 +32,7 @@ class Merger {
     const STATUS      = 'status';
     const DIFF_ONLY   = 'diff-only';
     const USERNAME    = 'username';
+    const ENV         = 'env';
     const TEST        = 'test';
 
     /**
@@ -51,9 +52,46 @@ class Merger {
     const URL_END  = '/default/export-translations';
 
     /**
-     * Plugin release.
+     * Plugin release constants.
      */
-    const PLUGIN_RELEASE = 'stable';
+    const RELEASE_STABLE = 'stable';
+    const RELEASE_DEV    = 'dev';
+
+    /**
+     * Type defined in the homepage URL of a plugin/theme.
+     */
+    const URL_PLUGINS    = 'plugins';
+    const URL_THEMES     = 'themes';
+    
+    /**
+     * Type defined in the translation URL of a plugin/theme.
+     */
+    const TRANS_URL_PLUGINS = 'wp-plugins';
+    const TRANS_URL_THEMES  = 'wp-themes';
+
+    /**
+     * Core sub-projects defined in the download URL of a *po file.
+     */
+    const CORE_CC = 'cc';
+    const CORE_ADMIN = 'admin';
+    const CORE_ADMIN_NET = 'admin/network';
+
+    /**
+     * Full names of a core sub-projects
+     */
+    const CORE_CC_FULL = 'Continents & Cities';
+    const CORE_ADMIN_FULL = 'Administration';
+    const CORE_ADMIN_NET_FULL = 'Network Admin';
+
+    /**
+     * Total number of *.po files of the core project (core plus sub-projects).
+     */
+    const CORE_PROJECT = 4;
+
+    /**
+     * Lenght of the header of the *.po file.
+     */
+    const PO_HEADER_LENGTH = 12; 
 
     /**
      * Folder in the root directory where the downloaded base locale and the copy locale *.po files will be saved.
@@ -73,12 +111,22 @@ class Merger {
     /**
      * Valid parameters.
      */
-    protected $valid_params = array( self::BASE_LOCALE, self::COPY_LOCALE, self::PO_SOURCE, self::FUZZY, self::MCAF, self::MCAF_SHORT, self::STATUS, self::DIFF_ONLY, self::USERNAME, self::TEST );
+    protected $valid_params = array( self::BASE_LOCALE, self::COPY_LOCALE, self::PO_SOURCE, self::FUZZY, self::MCAF, self::MCAF_SHORT, self::STATUS, self::DIFF_ONLY, self::USERNAME, self::ENV, self::TEST );
 
     /**
      * Valid filters for the download URL.
      */
     protected $valid_status_filters = array( self::CURRENT, self::UNTRANSLATED, self::FUZZY_FILTER, self::WAITNING, self::REJECTED, self::OLD );
+
+    /**
+     * Core sub-projects defined in the download URL of a *.po file.
+     */
+    protected $core_sub_projects = array( self::CORE_CC, self::CORE_ADMIN, self::CORE_ADMIN_NET );
+    
+    /**
+     * Full names of the core sub-projects.
+     */
+    protected $core_sub_projects_names = array( self::CORE_CC_FULL, self::CORE_ADMIN_FULL, self::CORE_ADMIN_NET_FULL );
 
     /**
      * Received parameters.
@@ -106,6 +154,11 @@ class Merger {
     protected $fuzzy_strings = array();
 
     /**
+     * Parameters of the result file(s).
+     */
+    protected $result_params = array();
+
+    /**
      * Major core version for the download URL (ex: 5.0.x).
      */
     protected $major_core = null;
@@ -126,15 +179,15 @@ class Merger {
     protected $error_message = null;
     
     /**
+     * Condition(s) that require user's attention.
+     */
+    protected $warning_messages = null;
+
+    /**
      * Name of the result file.
      */
     protected $result_name = null;
 
-    /**
-     * Indicates if the source of the *.po file is an URL
-     */
-    protected $is_url;
-    
     /**
      * Indicates if the "mark-copy-as-fuzy" parameter is set.
      */
@@ -144,6 +197,16 @@ class Merger {
      * Specifies if the downloaded *.po files should be kept in the "downloads" folder.
      */
     protected $keep_downloaded_pos = false;
+
+    /**
+     * Indicates if the domain is translate.wordpress.org.
+     */
+    protected $is_translate_host = false;
+    
+    /**
+     * Indicates if the source of the *.po file is an URL
+     */
+    protected $is_url;
     
     /**
      * Constructor. 
@@ -184,13 +247,34 @@ class Merger {
      * content from the base locale and saves the result in a new file.
      */
     public function merge() 
-    {    
-        $po_extractor  = new Po_Extractor( $this->copy_content );
-
-        $po_merger = new Po_Merger( $this->base_content, $po_extractor->extract_msgs(), 
-                                    $this->fuzzy_strings, $this->is_mcaf );
+    {   
+        $po_extractor  = new Po_Extractor();
+        $po_merger     = new Po_Merger( $this->fuzzy_strings, $this->is_mcaf );
         
-        $this->create_result_file( $po_merger->merge_po(), $this->result_name );
+        $merged_content = null;
+        
+        // If the process is on a core.
+        if ( is_array( $this->copy_content[0] ) ) 
+        {
+            $merged_content = array();
+            
+            for ( $i = 0; $i < count ( $this->copy_content ); ++$i ) 
+            {
+                $po_extractor->initialize( $this->copy_content[$i] );
+                $po_merger->initialize( $this->base_content[$i], $po_extractor->extract_msgs() );
+
+                $merged_content[] = $po_merger->merge_po();
+            }
+        }
+        else 
+        {
+            $po_extractor->initialize( $this->copy_content );
+            $po_merger->initialize( $this->base_content, $po_extractor->extract_msgs() );
+
+            $merged_content = $po_merger->merge_po();
+        }
+        
+        $this->create_result_file( $merged_content, $this->result_name );
     }
 
     /**
@@ -279,7 +363,7 @@ class Merger {
                 {
                     case $param == self::PO_SOURCE:
                         $source = $params[self::PO_SOURCE];
-                    
+    
                         $this->is_url = $this->is_url( $source );
                 
                         if ( $this->is_url ) 
@@ -365,6 +449,16 @@ class Merger {
     }
 
     /**
+     * Returns the warning messages.
+     * 
+     * @return string Warning message(s).
+     */
+    public function get_warning_messages()
+    {
+        return $this->warning_messages;
+    }
+
+    /**
      * Returns the path of the download folder in the root of the package.
      * 
      * @return string Folder path.
@@ -395,7 +489,7 @@ class Merger {
     }
 
     /**
-     * Verifies that an URL is a valid plugin/theme homepage URL.
+     * Verifies that an URL is a valid plugin/theme homepage URL/translation URL.
      * 
      * @param string $url URL to validate.
      * 
@@ -406,13 +500,20 @@ class Merger {
         $result = true;
 
         $url = strtolower( $url );
-        $url_parts = parse_url( $url);
+        $url_parts = parse_url( $url );
         
         // Host validation.
-        if ( ! $this->endsWith( $url_parts['host'], "wordpress.org" ) ) 
+        if ( !$this->endsWith( $url_parts['host'], "wordpress.org" ) ) 
         {
             $this->error_message = __( 'The host (' . $url_parts['host'] . ') in the URL is invalid.' );
             $result = false;
+        }
+        else
+        {
+            if ( $url_parts['host'] == 'translate.wordpress.org' ) 
+            {
+                $this->is_translate_host = true;
+            }
         }
 
         // Path validation.
@@ -426,13 +527,26 @@ class Merger {
                 $result = false;
             }
 
-            if ( ! in_array( $path_parts[1], array( 'themes', 'plugins' ) ) ) 
+            if ( !in_array( $path_parts[1], array( self::URL_THEMES, self::URL_PLUGINS ) ) && $path_parts[2] != self::TRANS_URL_PLUGINS ) 
             {
-                $this->error_message = __( 'The URL type (plugins or themes) could not be detected.' );
-                $result = false;
+                $is_trans_url_themes = false;
+                
+                if ( isset( $path_parts[4] ) ) 
+                {
+                    if ( $path_parts[4] == self::TRANS_URL_THEMES ) 
+                    {
+                        $is_trans_url_themes = true;
+                    }
+                }
+                
+                if ( !$is_trans_url_themes ) 
+                {
+                    $this->error_message = __( 'The URL type (plugins or themes) could not be detected.' );
+                    $result = false;
+                }
             }
 
-            if ( empty( $path_parts[2] ) ) 
+            if ( empty( $path_parts[2] ) && empty( $path_parts[3] ) )
             {
                 $this->error_message = __( 'The theme/plugin slug in the URL cannot be empty.' );
                 $result = false;
@@ -482,16 +596,90 @@ class Merger {
         $result = false;
         
         // Download the base and copy locale *.po files.
-        $downloaded_po_paths = $this->download_pos( $url, $base_locale, $copy_locale, $core );
+        $downloaded_po_paths = $this->start_pos_download( $url, $base_locale, $copy_locale, $core );
 
-        // If the *.po files were downloaded successfully. 
+        // If the *.po files were downloaded successfully, extract the contents of the downloaded *.po files into arrays.
         if ( !is_null( $downloaded_po_paths['path_base'] ) && !is_null( $downloaded_po_paths['path_copy'] ) ) 
         {   
-            // Extract the contents of the downloaded *.po fils into arrays.
-            $this->base_content = file( $downloaded_po_paths['path_base'] );
-            $this->copy_content = file( $downloaded_po_paths['path_copy'] );
-            
-            $result = true;
+            // Verify if an empty *.po file was downloaded.
+            if ( !is_null( $core ) ) 
+            {
+                $count_empty = 0;
+                
+                // Temporary variables for the *.po paths and core project names.
+                $temp_path_base = array();
+                $temp_path_copy = array();
+                
+                $temp_core_sub_projects       = $this->core_sub_projects;
+                $temp_core_sub_projects_names = $this->core_sub_projects_names;
+
+                // Reinitialize the variables.
+                $this->core_sub_projects = array();
+                $this->core_sub_projects_names = array();
+                
+                for ( $i = 0; $i < count( $downloaded_po_paths['path_base'] ); ++$i ) 
+                {
+                    if ( $this->is_empty_po( $downloaded_po_paths['path_base'][$i] ) ) 
+                    {
+                        // If the downloaded files shouldn't be kept, delete the empty *.po file (since the copy locale isn't needed anymore, delete it as well). 
+                        if ( !$this->keep_downloaded_pos && !isset( $this->params[self::TEST] ) ) 
+                        {
+                            unlink( $downloaded_po_paths['path_base'][$i] );
+                            unlink( $downloaded_po_paths['path_copy'][$i] );
+                        }
+
+                        // Set the error messages and if it's a sub-project, remove it from the arrays.
+                        if ( $i !== 0 ) 
+                        {
+                            $this->warning_messages[] = __( '"' . $temp_core_sub_projects_names[$i - 1] . '" is fully translated or contains only waiting translations. ' .  
+                                                           'No file will be generated.' );
+                        }
+                        else 
+                        {
+                            $this->warning_messages[] = __( 'The core is fully translated or contains only waiting translations. No file will be generated.' );
+                        }
+
+                        ++$count_empty;
+                    }
+                    else 
+                    {
+                        $temp_path_base[] = $downloaded_po_paths['path_base'][$i];
+                        $temp_path_copy[] = $downloaded_po_paths['path_copy'][$i];
+
+                        if ( $i !== 0 ) 
+                        {
+                            $this->core_sub_projects[] = $temp_core_sub_projects[$i - 1];
+                            $this->core_sub_projects_names[] = $temp_core_sub_projects_names[$i - 1];
+                        }
+                    }
+                }
+
+                // If not all *.po files of the base locale are empty.
+                if ( $count_empty < self::CORE_PROJECT )
+                {   
+                    for ( $i = 0; $i < count( $temp_path_base ); ++$i ) 
+                    {
+                        $this->base_content[] = file( $temp_path_base[$i] );
+                        $this->copy_content[] = file( $temp_path_copy[$i] );
+                    }
+                    
+                    $result = true;
+                }
+            }
+            else 
+            {
+                if ( !$this->is_empty_po( $downloaded_po_paths['path_base'] ) ) 
+                {
+                    $this->base_content = file( $downloaded_po_paths['path_base'] );
+                    $this->copy_content = file( $downloaded_po_paths['path_copy'] );
+
+                    $result = true;
+                }
+            }
+            // End of the verification.
+
+            // Set the name of the result file(s).
+            $this->result_name = $this->set_result_name();
         }
         else
         {
@@ -503,7 +691,7 @@ class Merger {
             {
                 $this->error_message = __( 'The copy locale is invalid.' );
             }
-            else
+            elseif ( is_null( $downloaded_po_paths['path_base'] ) && is_null( $downloaded_po_paths['path_copy'] ) )
             {
                 $this->error_message = __( 'The parameters have errors.' );
             }
@@ -511,6 +699,36 @@ class Merger {
         
         // If the downloaded files shouldn't be kept, delete them. 
         if ( !$this->keep_downloaded_pos && !isset( $this->params[self::TEST] ) ) 
+        {
+            $this->delete_downloaded_pos( $downloaded_po_paths );
+        }
+
+        return $result;
+    }
+
+    /**
+     * Deletes the downloaded *.po files.
+     * 
+     * @param array $downloaded_po_paths Downloaded *.po files paths.
+     */
+    public function delete_downloaded_pos( $downloaded_po_paths = array() ) 
+    {
+        if ( is_array( $downloaded_po_paths['path_base'] ) && is_array( $downloaded_po_paths['path_copy'] ) )
+        {
+            for ( $i = 0; $i < count( $downloaded_po_paths['path_base'] ); ++$i ) 
+            {
+                if ( is_file( $downloaded_po_paths['path_base'][$i] ) ) 
+                {
+                    unlink( $downloaded_po_paths['path_base'][$i] );
+                }
+
+                if ( is_file( $downloaded_po_paths['path_copy'][$i] ) ) 
+                {
+                    unlink( $downloaded_po_paths['path_copy'][$i] );
+                }
+            }
+        }
+        else 
         {
             if ( is_file( $downloaded_po_paths['path_base'] ) ) 
             {
@@ -522,45 +740,125 @@ class Merger {
                 unlink( $downloaded_po_paths['path_copy'] );
             }  
         }
-        
-        return $result;
     }
 
     /**
-     * Downloads and saves the base locale, the copy locale *po files.
+     * Verifies if an empty *.po file was downloaded (ex: the filter "untranslated" is applied to a project without untranslated strings).
      * 
-     * @param string $url The homepage URL of the plugin/theme.
+     * @param string $po_file_path Path of the *.po file.
+     * 
+     * @return boolean True if valid. Otherwise, false.
+     */
+    public function is_empty_po( $po_file_path ) 
+    {
+        $result = false;
+
+        $content_as_string = file_get_contents( $po_file_path );
+        $content_as_string = rtrim( $content_as_string );
+        
+        $parts = explode( PHP_EOL, $content_as_string );
+
+        if ( count( $parts ) == self::PO_HEADER_LENGTH ) 
+        {
+            $this->error_message = __( 'The query could not generate any strings to merge. Please check if the project is already fully translated.' );
+            $result = true;
+        }
+
+        return $result;
+    }
+    
+    
+    /**
+     * Downloads the *po files and returns their save paths.
+     * 
+     * @param string $url Homepage URL/translation URL of the plugin/theme.
      * @param string $base_locale Locale where the translations from the copy locale will be used.
      * @param string $copy_locale Locale used to get the translations that are not present in the base locale.
      * @param string $core Major core version, or null if the parameter is not set.
      * 
      * @return array Paths of the downloaded *.po files.
      */
-    public function download_pos( $url, $base_locale, $copy_locale, $core ) 
+    public function start_pos_download( $url, $base_locale, $copy_locale, $core ) 
     {
+        $result = null;
         $name = null;
         $type = null;
-        
-        // Create, if necessary, the folder where the downloaded *.po files will be saved.
-        if( !is_dir( $this->download_folder_path ) ) 
-        {
-            mkdir( $this->download_folder_path, 077 );
-        }
         
         // If the process is not on a core.
         if ( is_null( $core ) ) 
         {
-            // Get the name and the type from the plugin's/theme's homepage URL.
+            // Get the name and the type from the plugin's/theme's homepage URL/translation URL.
             $name = $this->get_name_from_url( $url );
             $type = $this->get_type_from_url( $url );
         }
 
-        // Set the name under which the result file will be saved.
-        $this->result_name = $this->set_result_name( $name, $type, $base_locale, $core );
-    
+        // Set the parameters of the result file(s).
+        $this->result_params = array(
+            'name' => $name,
+            'type' => $type,
+            'core' => $core,
+            'locale' => $base_locale
+        );
+        
+        $path_base = null;
+        $path_copy = null;
+        
+        $params = array(
+            'name'        => $name,
+            'type'        => $type,
+            'base_locale' => $base_locale,
+            'copy_locale' => $copy_locale,
+            'core'        => $core
+        );
+
         // Download and save the *.po files.
-        $path_base = $this->download_po( $name, $type, $base_locale, $core, true );
-        $path_copy = $this->download_po( $name, $type, $copy_locale, $core, false );
+        $result = $this->download_locales_pos( $params );
+
+        return $result;
+    }
+
+    /**
+     * Downloads and saves the base locale, the copy locale *po files and returns their save paths.
+     * 
+     * @param array *.po file parameters.
+     * 
+     * @return array Paths of the downloaded *.po files.
+     */
+    public function download_locales_pos( $params = array() ) 
+    {
+        $path_base = null;
+        $path_copy = null;
+        
+        $base_locale = $params['base_locale'];
+        $copy_locale = $params['copy_locale'];
+        
+        unset( $params['base_locale'] );
+        unset( $params['copy_locale'] );
+        
+        // Create, if necessary, the folder where the downloaded *.po files will be saved.
+        if( !is_dir( $this->download_folder_path ) ) 
+        {
+            mkdir( $this->download_folder_path, 0770 );
+        }
+
+        $params['locale']  = $base_locale;
+        $params['is_base'] = true;
+        $path_base = $this->download_pos( $params );
+        
+        $params['locale']  = $copy_locale;
+        $params['is_base'] = false;
+        $path_copy = $this->download_pos( $params );
+        
+        if ( !is_null( $params['core'] ) ) 
+        {
+            $path_base = $path_base['core'];
+            $path_copy = $path_copy['core'];
+        }
+        else 
+        {
+            $path_base = $path_base['plugin_theme'];
+            $path_copy = $path_copy['plugin_theme'];
+        }
 
         return array(
             'path_base' => $path_base,
@@ -569,24 +867,23 @@ class Merger {
     }
 
     /**
-     * Downloads and saves a *.po file.
+     * Downloads and saves *po files.
      * 
-     * @param string $name Name of the plugin/theme.
-     * @param string $type Type (plugin/theme).
-     * @param string $locale
-     * @param string $core Major core version, or null if the "core" parameter is not set.
-     * @param boolean $is_base Indicates if it's a base locale.
-     * 
-     * @return string $save_path Save path of the downloaded *.po file.
+     * @param array $params *.po file parameters.
+
+     * @return array array Save path of the downloaded *.po file (or files if the "core" parameter is set).
      */
-    public function download_po( $name, $type, $locale, $core, $is_base ) 
+    public function download_pos( $po_params = array() ) 
     {
-        $save_path = null;
+        $result = array(
+            'plugin_theme' => null,
+            'core' => null
+        );
         
         // For local testing, the file from the "tests" folder will be read.
         if ( isset( $this->params[self::TEST] ) ) 
         {
-            $save_path = $this->tests_folder_path . $locale . '/' . $name . '-' . $locale . '.po';
+            $result = $this->tests_folder_path . $po_params['locale'] . '/' . $po_params['name'] . '-' . $po_params['locale'] . '.po';
         }
         else 
         {
@@ -597,30 +894,111 @@ class Merger {
                 self::USERNAME  => ( isset( $this->params[self::USERNAME] ) ) ? $this->params[self::USERNAME] : null
             );
             
-            // Parametres for the path of the file and the download URL.
-            $params = array(
-                'name'    => $name,
-                'type'    => $type,
-                'locale'  => $locale,
-                'core'    => $core,
-                'is_base' => $is_base,
-                'filters' => $filters,
-                'plugin_release'       => self::PLUGIN_RELEASE,
-                'download_folder_path' => $this->download_folder_path
-            );
-            
-            $download_url = $this->create_po_url( $params );
-            
-            if ( in_array( 'HTTP/1.1 200 OK', get_headers( $download_url ) ) )
+            $env = null;
+
+            // Verify if the plugin environment was specified
+            if ( isset( $this->params[self::ENV] ) ) 
             {
-                $save_path = $this->set_temp_path( $params );
+                $env = $this->params[self::ENV];
+            }
+            else 
+            {
+                $env = self::RELEASE_STABLE;
+            }
+
+            $po_params['filters'] = $filters;
+            $po_params['release'] = $env;
+            $download_urls = $this->create_po_url( $po_params );
+            
+            $po_params['download_folder_path'] = $this->download_folder_path;
+            $save_paths = $this->set_temp_path( $po_params );
                 
-                file_put_contents( $save_path, @fopen( $download_url, 'r' ) );
+            if ( !is_null( $po_params['core'] ) ) 
+            {
+                $result['core'] = $this->download_multiple_pos( $save_paths['core'], $download_urls['core'] );
+
+                if ( is_null( $result['core'] ) ) 
+                {
+                    $po_params['release'] = self::RELEASE_DEV;
+                    $download_urls = $this->create_po_url( $po_params );
+
+                    $result['core'] = $this->download_multiple_pos( $save_paths['core'], $download_urls['core'] );
+                }
+            }
+            else 
+            {
+                $po_params['download_url'] = $download_urls['plugin_theme'];
+                $po_params['save_path']    = $save_paths['plugin_theme'];
+                
+                $result['plugin_theme'] = $this->download_single_po( $po_params );
             }
         }
-        
-        return $save_path;
+
+        return $result;
     }
+
+    /**
+     * Downloads and saves a single *.po file. If the process was successful, returns the file's path.
+     * 
+     * @param array *.po file parameters.
+     * 
+     * @return string Path of the downloaded *.po file.
+     */
+    public function download_single_po( $params = array() ) 
+    {
+        $result = null;
+        
+        // Verify if the file was downloaded successfully.
+        if ( file_put_contents( $params['save_path'], @fopen( $params['download_url'], 'r' ) ) !== 0 ) 
+        {
+            $result = $params['save_path'];
+        }
+        else
+        {
+            // If there was an error and it's a plugin, try to download the dev release. 
+            if ( !isset( $this->params[self::ENV] ) ) 
+            {
+                if ( $params['type'] == self::URL_PLUGINS ) 
+                {
+                    $params['release'] = self::RELEASE_DEV;
+
+                    $download_url = $this->create_po_url( $params )['plugin_theme'];
+                
+                    if ( file_put_contents( $params['save_path'], @fopen( $download_url, 'r' ) ) !== 0 ) 
+                    {
+                        $result = $params['save_path'];
+                    }
+                }
+            }
+        }
+
+        return $result;
+    }
+    
+    /**
+     * Downloads and saves multiple *.po files. If the process was successful, returns the file's path.
+     * 
+     * @param array $pos_save_paths Paths where the downloaded *.po files should be saved.
+     * @param array $pos_download_urls Download URL of the *.po files.
+     * 
+     * @return array Paths of the downloaded *.po files.
+     */
+    public function download_multiple_pos( $pos_save_paths = array(), $pos_download_urls = array() ) 
+    {
+        $result = null;
+        
+        for ( $i = 0; $i < count( $pos_save_paths ); ++$i ) 
+        {
+            // Verify if the file was downloaded and saved successfully.
+            if ( file_put_contents( $pos_save_paths[$i], @fopen( $pos_download_urls[$i], 'r' ) ) !== 0 ) 
+            {
+                $result[] = $pos_save_paths[$i];
+            }
+        }
+
+        return $result;
+    } 
+
 
     /**
      * Creates the download URL of a *.po file.
@@ -631,34 +1009,77 @@ class Merger {
      */
     public function create_po_url( $url_params = array() ) 
     {
-        $result = null;
-        $url_middle = null;
+        $result = array(
+            'plugin_theme' => null,
+            'core' => null
+        );
+
+        $url_middle = 'wp-' . $url_params['type'] . '/'. $url_params['name'] . '/';
         
         if ( !is_null( $url_params['core'] ) ) 
         {
-            $url_middle = 'wp' . '/' . $url_params['core'] . '/';
+            if ( $url_params['release'] == self::RELEASE_DEV) 
+            {
+                $url_middle = 'wp' . '/'. $url_params['release'] .'/';
+            }
+            else 
+            {
+                $url_middle = 'wp' . '/' . $url_params['core'] . '/';
+            }
         }
         else 
         {
-            if ( $url_params['type'] == 'plugins' ) 
+            if ( $url_params['type'] == self::URL_PLUGINS ) 
             {
-                $url_middle = 'wp-' . $url_params['type'] . '/'. $url_params['name'] . '/' . 
-                    $url_params['plugin_release'] . '/';
-            }
-            elseif ( $url_params['type'] == 'themes' ) 
-            {
-                $url_middle = 'wp-' . $url_params['type'] . '/'. $url_params['name'] . '/' .
-                    $url_params['plugin_release'] . '/';
+                $url_middle .= $url_params['release'] . '/';
             }
         }
-        $result = self::URL_BASE . $url_middle . $url_params['locale'] . self::URL_END;
+        
+        // Create the download URL for all core sub-projects. 
+        if ( !is_null( $url_params['core'] ) )
+        {
+            $core_urls = array();
+            
+            $core_urls[] = self::URL_BASE . $url_middle . $url_params['locale'] . self::URL_END;
+            
+            foreach ( $this->core_sub_projects as $core_sub_project ) 
+            {
+                $core_sub_project .= '/';
+                
+                $core_urls[] = self::URL_BASE . $url_middle . $core_sub_project . $url_params['locale'] . self::URL_END;
+            }
+
+            $result['core'] = $core_urls;
+        }
+        else 
+        {
+            $result['plugin_theme'] = self::URL_BASE . $url_middle . $url_params['locale'] . self::URL_END;
+        }
 
         // If it's the base locale, set the filters. 
         if ( $url_params['is_base'] && !empty( array_filter( $url_params['filters'] ) ) )
         {
-            $result = $this->set_filters( $result, $url_params['filters'] );
+            // Set the filters for the download URL of all core sub-projects.
+            if ( !is_null( $url_params['core'] ) )
+            {
+                $result['core'] = null;
+                $temp = array();
+
+                foreach ( $core_urls as $url ) 
+                {
+                    $url = $this->set_filters( $url, $url_params['filters'] );
+                    $temp[] = $url;
+                }
+
+                $result['core'] = $temp;
+            }
+            else 
+            {
+                $result['plugin_theme'] = $this->set_filters(  $result['plugin_theme'], $url_params['filters'] );
+            }
+            
         }
-        
+
         return $result;
     }
 
@@ -705,12 +1126,12 @@ class Merger {
         }
         
         $result = $download_url;
-        
+
         return $result;
     }
     
     /**
-     * Gets the name of a plugin/theme from its homepage URL.
+     * Gets the name of a plugin/theme from its homepage URL/translation URL.
      * 
      * @param string $url Homepage URL of a plugin/theme.
      * 
@@ -719,19 +1140,33 @@ class Merger {
     public function get_name_from_url( $url ) 
     {
         $result = null;
-        
         $parts = explode( '/', parse_url( $url )['path'] );
+        $size = count( $parts );
 
-        if ( count( $parts ) >= 3 ) 
+        if ( $size  >= 3 ) 
         {
-            $result = $parts[2];
+            if ( !$this->is_translate_host ) 
+            {
+                $result = $parts[2];
+            }
+            else
+            {
+                if ( $size <= 5 ) 
+                {
+                    $result = $parts[3];
+                }
+                elseif ( $size <= 7 ) 
+                {
+                    $result = $parts[5];
+                }
+            }
         }
-        
+
         return $result;
     }
 
     /**
-     * Gets the type (plugin/theme) from the plugin's/theme's homepage URL.
+     * Gets the type (plugin/theme) from the plugin's/theme's homepage URL/translation URL.
      * 
      * @param string $url Homepage URL of a plugin/theme.
      * 
@@ -745,7 +1180,21 @@ class Merger {
         
         if ( count( $parts ) >= 2 ) 
         {
-            $result = $parts[1];
+            if ( !$this->is_translate_host ) 
+            {
+                $result = $parts[1];
+            }
+            else
+            {
+                if ( $parts[2] == self::TRANS_URL_PLUGINS ) 
+                {
+                    $result = self::URL_PLUGINS;
+                }
+                elseif ( $parts[4] == self::TRANS_URL_THEMES ) 
+                {
+                    $result = self::URL_THEMES;
+                }
+            }
         }
         
         return $result;
@@ -790,7 +1239,7 @@ class Merger {
                 }
             }
         }
-        
+   
         return $result;
     }
 
@@ -829,25 +1278,32 @@ class Merger {
 
     /**
      * Sets the name of the result file.
-     * 
-     * @param string $name Name of the plugin/theme.
-     * @param string $type Type (plugin/theme).
-     * @param string $locale
-     * @param string $core Major core version, or null if the parameter is not set.
-     * 
+     *
      * @return string $result The name of the result file.
      */
-    public function set_result_name( $name, $type, $locale, $core ) 
+    public function set_result_name() 
     {
         $result = null;
         
-        if ( !is_null( $core ) ) 
+        if ( !is_null( $this->result_params['core'] ) ) 
         {
-            $result = 'wp-' . $core . '-' . $locale . '-merged.po';
+            $result = array();
+            
+            $result[] = 'wp-' . $this->result_params['core'] . '-' . $this->result_params['locale'] . '-merged.po';
+
+            foreach ( $this->core_sub_projects as $sub_project ) 
+            {
+                if ( $sub_project == self::CORE_ADMIN_NET ) 
+                {
+                    $sub_project = 'admin-network';
+                }
+                
+                $result[] = 'wp-' . $this->result_params['core']. '-' . $sub_project . '-' . $this->result_params['locale'] . '-merged.po';
+            }
         }
         else 
         {
-            $result = 'wp-' . $type . '-' . $name . '-' . $locale . '-merged.po';
+            $result = 'wp-' . $this->result_params['type'] . '-' . $this->result_params['name'] . '-' . $this->result_params['locale'] . '-merged.po';
         }
         
         return $result;
@@ -860,21 +1316,35 @@ class Merger {
      * 
      * @return string $result Temporary save path of the downloaded file.
      */
-    public function set_temp_path( $file_params = array() ) 
+    public function set_temp_path( $params = array() ) 
     {
-        $result = null;
+        $result = array(
+            'plugin_theme' => null,
+            'core' => null
+        );
 
-        $path_base = $result = $file_params['download_folder_path'] . 'wp-';
+        $path_base = $params['download_folder_path'] . 'wp-';
 
-        if ( !is_null( $file_params['core'] ) ) 
+        if ( !is_null( $params['core'] ) ) 
         {
-            $result = $path_base . $file_params['core'] . '-' . 
-                $file_params['locale'] . '-temp.po';
+            $core_paths = array();
+            $core_paths[] = $path_base . $params['core'] . '-' . $params['locale'] . '-temp.po';
+            
+            foreach( $this->core_sub_projects as $core_sub_project ) 
+            {
+                if ( $core_sub_project == self::CORE_ADMIN_NET ) 
+                {   
+                    $core_sub_project = 'admin-network';
+                }
+                
+                $core_paths[] = $path_base . $params['core'] . '-' . $core_sub_project . '-' . $params['locale'] . '-temp.po';
+            }
+
+            $result['core'] = $core_paths; 
         }
         else 
         {
-            $result = $path_base . $file_params['type'] . '-' . 
-                $file_params['name'] . '-' . $file_params['locale'] . '-temp.po';
+            $result['plugin_theme'] = $path_base . $params['type'] . '-' . $params['name'] . '-' . $params['locale'] . '-temp.po';
         }
         
         return $result;
@@ -891,15 +1361,40 @@ class Merger {
         $content_as_string = null;
 
         // Transform the array's contents into string.
-        foreach ( $merged_content as $string ) 
+        if ( is_array( $merged_content[0] ) ) 
         {
-            $content_as_string .= $string;
+            for ( $i = 0; $i < count( $merged_content ); ++$i ) 
+            {
+                $content_as_string = $this->array_into_string( $merged_content[$i] );
+                $filename = getcwd() . '/' . $result_name[$i];
+                file_put_contents( $filename, rtrim ( $content_as_string ) );
+            }
+        }
+        else 
+        {
+            $content_as_string = $this->array_into_string( $merged_content );
+            $filename = getcwd() . '/' . $result_name;
+            file_put_contents( $filename, rtrim ( $content_as_string ) );
+        }
+    }
+
+    /**
+     * Transforms an array into string.
+     * 
+     * @param array Array to transform.
+     *
+     * @return string Array as string.
+     */
+    public function array_into_string( $array ) 
+    {
+        $result = null;
+
+        foreach ( $array as $string ) 
+        {
+            $result .= $string;
         }
 
-        // Set the file name path based on where the command "wp po merge" was executed.
-        $filename = getcwd() . '/' . $result_name;
-        
-        file_put_contents( $filename, rtrim ( $content_as_string ) );
+        return $result;
     }
 }
 function __( $text ) {return $text;}
