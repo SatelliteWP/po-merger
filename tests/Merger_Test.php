@@ -43,11 +43,12 @@ class Merger_Test extends TestCase
         $this->args[1] = 'fr';
         $this->args[2] = 'https://wordpress.org/plugins/wordpress-seo/';
 
+        // Path to the files used to test the "fuzzy" parameter.
         $this->fuzzy_path = __DIR__.'/files/fuzzy.txt';
         
         $this->merger = new Merger( $this->args, $this->assoc_args );
 
-        // Path to the download folder
+        // Path to the download folder.
         $this->download_folder_path = $this->merger->get_download_folder_path();
     }
 
@@ -56,9 +57,12 @@ class Merger_Test extends TestCase
      */
     public function tearDown()
     {
-        $this->args = null;
+        $this->args       = null;
         $this->assoc_args = null;
-        $this->merger = null;
+        $this->fuzzy_path = null;
+        $this->merger     = null;
+        
+        $this->download_folder_path = null;
     }
 
     /**
@@ -66,35 +70,36 @@ class Merger_Test extends TestCase
      */
     public function test_get_filters() 
     {
-        // Valid filters.
+        // Test valid filters.
         $filters_string = 'untranslated,fuzzy';
         $result = $this->merger->get_filters( $filters_string );
         
-        // Test valid filters.
         $this->assertEquals( 2, count( $result['valid_filters'] ) );
         $this->assertEquals( 'untranslated', $result['valid_filters'][0] );
         $this->assertEquals( 'fuzzy', $result['valid_filters'][1] );
+        // End of the test.
 
-        // One of the filters is invalid.
+        // Test the case where one of the filters is invalid.
         $filters_string = 'untranslated,filter,fuzzy';
         $result = $this->merger->get_filters( $filters_string );
         
-        // Test the case where one of the filters is invalid.
         $this->assertEquals( 2, count( $result['valid_filters'] ) );
         $this->assertEquals( 1, count( $result['invalid_filters'] ) );
+
         $this->assertEquals( 'untranslated', $result['valid_filters'][0] );
         $this->assertEquals( 'fuzzy', $result['valid_filters'][1] );
         $this->assertEquals( 'filter', $result['invalid_filters'][0] );
+        // End of the test.
 
-        // All the filters are invalid.
+        // Test the case where all of the filters are invalid.
         $filters_string = 'filterone,filtertwo,filterthree';
         $result = $this->merger->get_filters( $filters_string );
         
-        // Test the case where all the filters are invalid.
         $this->assertEquals( 3, count( $result['invalid_filters'] ) );
         $this->assertEquals( 'filterone', $result['invalid_filters'][0] );
         $this->assertEquals( 'filtertwo', $result['invalid_filters'][1] );
         $this->assertEquals( 'filterthree', $result['invalid_filters'][2] );
+        // End of the test.
     }
     
     /**
@@ -146,7 +151,7 @@ class Merger_Test extends TestCase
     }
 
     /**
-     * Tests the function that returns the major core version from the received core version.
+     * Tests the function that returns the major core version.
      */
     public function test_get_major_core_version() 
     {
@@ -174,31 +179,33 @@ class Merger_Test extends TestCase
     }
 
     /**
-     * Test teh function that validates the received core version by attempting to get the major version. 
+     * Tests the function that creates the major core version for download URL. 
      */
     public function test_get_core_version_for_url() 
     {
-        // Valid core versions.
+        //Test valid core versions.
         $valid_core_1 = '4.9';
         $valid_core_2 = '5.0.1';
         $valid_core_3 = '4.2.20';
         $valid_core_4 = '1.5.1.1';
 
-        //Test valid core versions.
-        $this->assertEquals( '4.9.x', $this->merger->create_core_version_for_url( $valid_core_1 ) );
-        $this->assertEquals( '5.0.x', $this->merger->create_core_version_for_url( $valid_core_2 ) );
-        $this->assertEquals( '4.2.x', $this->merger->create_core_version_for_url( $valid_core_3 ) );
-        $this->assertEquals( '1.5.x', $this->merger->create_core_version_for_url( $valid_core_4 ) );
+        $this->assertEquals( '4.9.x', $this->merger->create_core_for_url( $valid_core_1 ) );
+        $this->assertEquals( '5.0.x', $this->merger->create_core_for_url( $valid_core_2 ) );
+        $this->assertEquals( '4.2.x', $this->merger->create_core_for_url( $valid_core_3 ) );
+        $this->assertEquals( '1.5.x', $this->merger->create_core_for_url( $valid_core_4 ) );
+        // End of the test.
 
-        // Invalid core versions.
+        // Test invalid core versions.
         $invalid_core_1 = '4';
         $invalid_core_2 = '5."0".1';
         $invalid_core_3 = '4220';
+        $invalid_core_4 = '4.a';
 
-        //Test invalid core versions.
-        $this->assertEquals( null, $this->merger->create_core_version_for_url( $invalid_core_1 ) );
-        $this->assertEquals( null, $this->merger->create_core_version_for_url( $invalid_core_2 ) );
-        $this->assertEquals( null, $this->merger->create_core_version_for_url( $invalid_core_3 ) );
+        $this->assertEquals( null, $this->merger->create_core_for_url( $invalid_core_1 ) );
+        $this->assertEquals( null, $this->merger->create_core_for_url( $invalid_core_2 ) );
+        $this->assertEquals( null, $this->merger->create_core_for_url( $invalid_core_3 ) );
+        $this->assertEquals( null, $this->merger->create_core_for_url( $invalid_core_4 ) );
+        // End of the test.
     }
 
     
@@ -232,33 +239,59 @@ class Merger_Test extends TestCase
     }
 
     /**
-     * Tests the function that returns the name of a plugin/theme from its homepage URL.
+     * Tests the function that gets the name of the project from the URL.
      */
     public function test_get_name_from_url() 
     {
         $url_1 = 'https://wordpress.org/plugins/my-plugin/';
         $url_2 = 'https://en-ca.wordpress.org/themes/my-theme/';
+        $url_3 = 'https://translate.wordpress.org/locale/fr-ca/default/wp-plugins/woocommerce-jetpack/';
+        $url_4 = 'https://translate.wordpress.org/locale/fr-ca/default/meta/wordcamp/';
+        $url_5 = 'https://translate.wordpress.org/locale/fr-ca/default/apps/ios/';
 
         $name_1 = $this->merger->get_name_from_url( $url_1 );
         $name_2 = $this->merger->get_name_from_url( $url_2 );
+        
+        // Test with translate domain.
+        $this->merger->is_translate_host( 'translate.wordpress.org' );
+        
+        $name_3 = $this->merger->get_name_from_url( $url_3 );
+        $name_4 = $this->merger->get_name_from_url( $url_4 );
+        $name_5 = $this->merger->get_name_from_url( $url_5 );
 
         $this->assertEquals( 'my-plugin', $name_1 );
         $this->assertEquals( 'my-theme', $name_2 );
+        $this->assertEquals( 'woocommerce-jetpack', $name_3 );
+        $this->assertEquals( 'wordcamp', $name_4 );
+        $this->assertEquals( 'ios', $name_5 );
     }
 
     /**
-     * Tests the function that returns the type (plugin/theme) from the plugin's/theme's homepage URL.
+     * Tests the function that gets the type from the URL.
      */
     public function test_get_type_from_url() 
     {
         $url_1 = 'https://wordpress.org/plugins/my-plugin/';
         $url_2 = 'https://en-ca.wordpress.org/themes/my-theme/';
+        $url_3 = 'https://translate.wordpress.org/locale/fr-ca/default/wp-plugins/woocommerce-jetpack/';
+        $url_4 = 'https://translate.wordpress.org/locale/fr-ca/default/meta/wordcamp/';
+        $url_5 = 'https://translate.wordpress.org/locale/fr-ca/default/apps/ios/';
 
         $name_1 = $this->merger->get_type_from_url( $url_1 );
         $name_2 = $this->merger->get_type_from_url( $url_2 );
+        
+        // Test with translate domain.
+        $this->merger->is_translate_host( 'translate.wordpress.org' );
+        
+        $name_3 = $this->merger->get_type_from_url( $url_3 );
+        $name_4 = $this->merger->get_type_from_url( $url_4 );
+        $name_5 = $this->merger->get_type_from_url( $url_5 );
 
-        $this->assertEquals( 'plugins', $name_1 );
-        $this->assertEquals( 'themes', $name_2 );
+        $this->assertEquals( 'wp-plugins', $name_1 );
+        $this->assertEquals( 'wp-themes', $name_2 );
+        $this->assertEquals( 'wp-plugins', $name_3 );
+        $this->assertEquals( 'meta', $name_4 );
+        $this->assertEquals( 'apps', $name_5 );
     }
 
     
@@ -397,6 +430,64 @@ class Merger_Test extends TestCase
         $this->assertEquals( $expected, $this->merger->create_po_url( $params ) );
     }
 
+    
+    /**
+     * Tests the function that downloads a single *.po file.
+     */
+    public function test_download_single_po() 
+    {
+        // Test valid *.po file parameters.
+        $params = array(
+            'save_path'    => $this->download_folder_path . 'wp-plugins-classic-editor-fr-ca-temp.po',
+            'download_url' => 'https://translate.wordpress.org/projects/wp-plugins/classic-editor/stable/fr-ca/default/export-translations/',
+        );
+
+        $expected = $this->download_folder_path . 'wp-plugins-classic-editor-fr-ca-temp.po';
+
+        $this->assertEquals( $expected, $this->merger->download_single_po( $params ) );
+        // End of the test.
+
+        if ( is_file( $expected ) ) 
+        {
+            unlink( $expected );
+        }
+
+        // Test the case where the stable release doesn't exist (at the moment of test creation), but the dev release does exist.
+        $params = array(
+            'name'      => 'disable-comments',
+            'type'      => 'wp-plugins',
+            'locale'    => 'fr-ca',
+            'is_base'   => true,
+            'save_path' => $this->download_folder_path . 'wp-plugins-disable-comments-fr-ca-temp.po',
+            'core'      => null,
+            'release'   => 'stable',
+            'filters'   => array(),
+            'download_url' => 'https://translate.wordpress.org/projects/wp-plugins/disable-comments/stable/fr-ca/default/export-translations/',
+        );
+
+        $expected = $this->download_folder_path . 'wp-plugins-disable-comments-fr-ca-temp.po';
+
+        $this->assertEquals( $expected, $this->merger->download_single_po( $params ) );
+        // End of the test.
+
+        if ( is_file( $expected ) ) 
+        {
+            unlink( $expected );
+        }
+
+        // Test invalid parameters.
+        $params = null;
+        
+        $params = array(
+            'type'         => 'wp-themes',
+            'save_path'    => 'wp-themes-a-theme-fr-ca-temp.po',
+            'download_url' => 'http://press.org/projects/wp-themes/a-theme/fr-ca/default/export-translations/',
+        );
+
+        $this->assertEquals( null, $this->merger->download_single_po( $params ) );
+    }
+    
+    
     /**
      * Tests the function that downloads and saves a *.po file.
      */
@@ -472,38 +563,63 @@ class Merger_Test extends TestCase
      */
     public function test_process_pos() 
     {
-        // Valid plugin/theme parameters.
-        $valid_url = 'https://en-ca.wordpress.org/plugins/jetpack/';
+        // Test valid parameters.
+        $url_ok      = 'https://wordpress.org/plugins/jetpack/';
         $base_locale = 'fr-ca';
         $copy_locale = 'fr';
 
-        $result = $this->merger->process_pos( $valid_url, $base_locale, $copy_locale, null );
+        $result = $this->merger->process_pos( $url_ok, $base_locale, $copy_locale, null );
 
         $this->assertEquals( true, $result );
 
         // Test core.
-        $result = $this->merger->process_pos( null, $base_locale, $copy_locale, '4.7.x' );
+        $core   = '4.7.x';
+        $result = $this->merger->process_pos( null, $base_locale, $copy_locale, $core );
 
         $this->assertEquals( true, $result );
+        // End of the test.
 
-        //Test invalid parameters.
+        // Test an invalid URL (the project doesn't exist).
         $invalid_url = 'https://wordpress.com/plugins/some-non-existing-plugin/';
-        $core = null;
-        $result = $this->merger->process_pos( $invalid_url, $base_locale, $copy_locale, null );
+        $result      = $this->merger->process_pos( $invalid_url, $base_locale, $copy_locale, null );
 
         $this->assertEquals( false, $result );
-
-        $result = $this->merger->process_pos( $valid_url, 'fr-ca', 'frrr', null );
-
-        $this->assertEquals( false, $result );
+        // End of the test.
         
-        $result = $this->merger->process_pos( $valid_url, 'frca', 'frrr', null );
+        // Test an invalid core.
+        $invalid_core = '4.a';
+        $result       = $this->merger->process_pos( null, $base_locale, $copy_locale, $invalid_core );
 
         $this->assertEquals( false, $result );
-
-        $result = $this->merger->process_pos( null, 'fr-ca', 'fr', '47777.x' );
+        // End of the test.
+        
+        // Test an invalid locale. 
+        $invalid_copy_locale = 'frrr';
+        
+        $result = $this->merger->process_pos( $url_ok, $base_locale, $invalid_copy_locale , null );
 
         $this->assertEquals( false, $result );
+        // End of the test.
+        
+        // Test the case where both of the locales are invalid.
+        $invalid_base_locale = 'frca';
+
+        $result = $this->merger->process_pos( $url_ok, $invalid_base_locale, $invalid_copy_locale, null );
+
+        $this->assertEquals( false, $result );
+        // End of the test.
+
+        // Test the case where all of the parameters are invalid (URL is set).
+        $result = $this->merger->process_pos( $invalid_url, $invalid_base_locale, $invalid_copy_locale, null );
+
+        $this->assertEquals( false, $result );
+        // End of the test.
+
+        // Test the case where all of the parameters are invalid (core is set).
+        $result = $this->merger->process_pos( null, $invalid_base_locale, $invalid_copy_locale, $invalid_core );
+
+        $this->assertEquals( false, $result );
+        // End of the test.
 
     }
 
