@@ -75,8 +75,7 @@ class Po_Merger extends Po
     /**
      * Constructor.
      * 
-     * @param array $fuzzy_string Strings (words, expressions, etc) that need to be revised
-     * in a translation.
+     * @param array $fuzzy_string Strings (words, expressions, etc) that need to be revised in a translation.
      * @param boolean $is_mcaf 
      */
     public function __construct( $fuzzy_strings, $is_mcaf )
@@ -108,8 +107,7 @@ class Po_Merger extends Po
      * If it's the case, searches for the translation in the extracted msg
      * strings from the copy locale.
      * 
-     * @return array $merged_content Content of the base locale with the merged
-     * translations from the copy locale.
+     * @return array Content of the base locale with the merged translations from the copy locale.
      */
     public function merge_po() 
     {        
