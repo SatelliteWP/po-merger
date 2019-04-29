@@ -18,10 +18,10 @@ Then run the following command to install the project:
 
 PO Merger lets you merge PO files two different ways:
 
-- With the URL of a theme or plugin found on the WordPress repository
+- With the URL of a project found on the WordPress repository
 - With the core version of WordPress
 
-To merge two PO files from a theme or plugin, use the following command:
+To merge two PO files from a WordPress project, use the following command:
 
     wp po merge <base-locale> <copy-locale> <url>
 
@@ -35,9 +35,9 @@ To merge two PO files from a WordPress core version, use the following command:
 
 `<copy-locale>` Locale used to get translations that are not present in the base locale.
 
-`<url>` WordPress plugin/theme homepage url.
+`<url>` WordPress project (plugin or theme) main page URL, or WordpPress project (plugin, theme, meta or apps) translation URL.
 
-`<version>` WordPress core version
+`<version>` WordPress core version.
 
 ## Examples
 
@@ -45,6 +45,14 @@ Merging FR locale into FR-CA for a plugin or theme
 
     wp po merge fr-ca fr https://wordpress.org/plugins/wordpress-seo/
 
+Using the translation URL
+
+    wp po merge fr-ca fr https://translate.wordpress.org/locale/fr-ca/default/wp-plugins/wordpress-seo/
+    
+    wp po merge fr-ca fr https://translate.wordpress.org/locale/fr-ca/default/meta/wordcamp/
+    
+    wp po merge en-ca en-gb https://translate.wordpress.org/locale/en-ca/default/apps/ios/
+    
 Merging FR locale into FR-CA for WordPress 5.0
 
     wp po merge fr-ca fr 5.0
