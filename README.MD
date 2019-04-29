@@ -62,7 +62,7 @@ Merging FR locale into FR-CA for WordPress 5.0
 | ------ | ------ |
 | `--fuzzy=<file>` | Specifies a text file containing words or expressions (one per line) that will trigger a translation revision. If a translation from the copy locale contains these strings, the translation will be marked as fuzzy.|
 | `--mark-copy-as-fuzzy` | Marks the translations obtained from the copy locale as fuzzy.|
-| `--mcaf` | Alias of the `--mark-copy-as-fuzzy` parameter |
+| `--mcaf` | Alias of the `--mark-copy-as-fuzzy` parameter. |
 | `--status=<filter1>,<filter2>,...` |	Specifies the filter(s) for the base locale download URL. List of valid filters: current, untranslated, fuzzy, waiting, rejected, old. Some of the filters may be mutually exclusive.|
 | `--diff-only` |	Generates a result PO file containing only the diffential strings (untranslated).|
 | `--username` | Get the translations from the specific contributor (WordPress.org username).|
