@@ -1531,4 +1531,3 @@ class Merger {
         return $result;
     }
 }
-function __( $text ) {return $text;}
