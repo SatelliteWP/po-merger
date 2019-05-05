@@ -51,11 +51,19 @@ class Po_Extractor extends Po {
     /**
      * Constructor.
      */
-    public function __construct( $po_content )
+    public function __construct(){}
+
+    /**
+     * Sets the parameter.
+     *
+     * @param array $po_content Content of a *po file.
+     */
+    public function initialize( $po_content ) 
     {
         $this->po_content = $po_content;
     }
-
+    
+    
     /**
      * Extracts the msg strings into their corresponding arrays.
      * 
@@ -107,11 +115,11 @@ class Po_Extractor extends Po {
                         $this->msgids_plural[] = $current;
                         break;
 
-                    // Otherwise, it's a plural msgstr string
+                    // Otherwise, it's a plural msgstr string.
                     default:
                         $this->msgstrs_plural[] = $current;
                         
-                        // Add the plural form to the $plural_forms array
+                        // Add the plural form to the $plural_forms array.
                         $this->add_plural_form( $msg, $nplurals );
                         break;
                 }
@@ -153,8 +161,8 @@ class Po_Extractor extends Po {
      * Adds a plural form (msgstr[0], msgstr[1], etc) to the corresponding array,
      * if the array doesn't contain it already.
      * 
-     * @param string $msgstr_pural Plural form
-     * @param string $nplurals Number of plural forms
+     * @param string $msgstr_pural Plural form.
+     * @param string $nplurals Number of plural forms.
      */
     public function add_plural_form( $msgstr_pural, $nplurals ) 
     {
@@ -174,9 +182,9 @@ class Po_Extractor extends Po {
     /**
      * Gets the number of plural forms.
      * 
-     * @param string $nplurals_string String containing the number of plural forms
+     * @param string $nplurals_string String containing the number of plural forms.
      * 
-     * @return string $result Number of plural forms, or null if the process has failed
+     * @return string|null Number of plural forms, or null if the process has failed.
      */
     public function get_nplurals( $nplurals_string ) 
     {

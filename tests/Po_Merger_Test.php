@@ -48,8 +48,6 @@ class Po_Merger_Test extends TestCase
             'msgstrs_plural' => array( $this->copy_content[29], $this->copy_content[30] ),
             'plural_forms' => array( 'msgstr[0]', 'msgstr[1]' )
         );
-
-        //$this->po_merger = new Po_Merger( $this->base_content, $this->extracted_msgs, array(), false );
     }
 
     /**
@@ -70,7 +68,8 @@ class Po_Merger_Test extends TestCase
      */
     public function test_merge_po()
     {
-        $this->po_merger = new Po_Merger( $this->base_content, $this->extracted_msgs, array(), false );
+        $this->po_merger = new Po_Merger( array(), false );
+        $this->po_merger->initialize( $this->base_content, $this->extracted_msgs );
         
         $result = $this->po_merger->merge_po();
         

@@ -27,7 +27,8 @@ class Po_Extractor_Test extends TestCase
     public function setUp()
     {
         $this->po_content = file( __DIR__.'/files/po_copy.po' );
-        $this->po_extractor = new Po_Extractor( $this->po_content );
+        $this->po_extractor = new Po_Extractor();
+        $this->po_extractor->initialize( $this->po_content  );
     }
 
     /**
