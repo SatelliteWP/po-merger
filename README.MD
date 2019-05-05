@@ -18,10 +18,10 @@ Then run the following command to install the project:
 
 PO Merger lets you merge PO files two different ways:
 
-- With the URL of a theme or plugin found on the WordPress repository
+- With the URL of a project found on the WordPress repository
 - With the core version of WordPress
 
-To merge two PO files from a theme or plugin, use the following command:
+To merge two PO files from a WordPress project, use the following command:
 
     wp po merge <base-locale> <copy-locale> <url>
 
@@ -35,9 +35,9 @@ To merge two PO files from a WordPress core version, use the following command:
 
 `<copy-locale>` Locale used to get translations that are not present in the base locale.
 
-`<url>` WordPress plugin/theme homepage url.
+`<url>` WordPress project (plugin or theme) main page URL, or WordpPress project (plugin, theme, meta or apps) translation URL.
 
-`<version>` WordPress core version
+`<version>` WordPress core version.
 
 ## Examples
 
@@ -45,6 +45,14 @@ Merging FR locale into FR-CA for a plugin or theme
 
     wp po merge fr-ca fr https://wordpress.org/plugins/wordpress-seo/
 
+Using the translation URL
+
+    wp po merge fr-ca fr https://translate.wordpress.org/locale/fr-ca/default/wp-plugins/wordpress-seo/
+    
+    wp po merge fr-ca fr https://translate.wordpress.org/locale/fr-ca/default/meta/wordcamp/
+    
+    wp po merge en-ca en-gb https://translate.wordpress.org/locale/en-ca/default/apps/ios/
+    
 Merging FR locale into FR-CA for WordPress 5.0
 
     wp po merge fr-ca fr 5.0
@@ -54,7 +62,7 @@ Merging FR locale into FR-CA for WordPress 5.0
 | ------ | ------ |
 | `--fuzzy=<file>` | Specifies a text file containing words or expressions (one per line) that will trigger a translation revision. If a translation from the copy locale contains these strings, the translation will be marked as fuzzy.|
 | `--mark-copy-as-fuzzy` | Marks the translations obtained from the copy locale as fuzzy.|
-| `--mcaf` | Alias of the `--mark-copy-as-fuzzy` parameter |
+| `--mcaf` | Alias of the `--mark-copy-as-fuzzy` parameter. |
 | `--status=<filter1>,<filter2>,...` |	Specifies the filter(s) for the base locale download URL. List of valid filters: current, untranslated, fuzzy, waiting, rejected, old. Some of the filters may be mutually exclusive.|
 | `--diff-only` |	Generates a result PO file containing only the diffential strings (untranslated).|
 | `--username` | Get the translations from the specific contributor (WordPress.org username).|
