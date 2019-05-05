@@ -281,7 +281,7 @@ class Merger {
     /**
      * Verifies if the merging process can be started.
      * 
-     * @return true|false Indicates if the process can be started.
+     * @return bool Indicates if the process can be started.
      */
     public function can_start() 
     {
@@ -338,7 +338,7 @@ class Merger {
     /**
      * Verifies if the parameters are valid.
      * 
-     * @return true|false Indicates if the parameters are valid or not.
+     * @return bool Indicates if the parameters are valid or not.
      */
     public function has_valid_parameters()
     {
@@ -363,7 +363,7 @@ class Merger {
      * 
      * @param array $params Parameters to verify.
      * 
-     * @return true|false Indicates if all of the parameters are valid, or one of the parameters is invalid.
+     * @return bool Indicates if all of the parameters are valid, or one of the parameters is invalid.
      */
     public function is_each_parameter_valid( $params = array() ) 
     {        
@@ -467,7 +467,7 @@ class Merger {
      * 
      * @param string $string String to verify.
      * 
-     * @return true|false Indicates if the string is an URL or not.
+     * @return bool Indicates if the string is an URL or not.
      */
     public function is_url( $string ) 
     {
@@ -490,7 +490,7 @@ class Merger {
      * 
      * @param string $url URL to validate.
      * 
-     * @return true|false Indicates if the URL is valid or not.
+     * @return bool Indicates if the URL is valid or not.
      */
     public function is_valid_url( $url ) 
     {
@@ -617,7 +617,7 @@ class Merger {
      * 
      * @param array $path_parts Path part of an URL as an array.
      * 
-     * @return true|false Indiciates if the type is valid or not.
+     * @return bool Indiciates if the type is valid or not.
      */
     public function is_valid_url_type( $path_parts ) 
     {
@@ -648,7 +648,7 @@ class Merger {
      * 
      * @param array $path_parts Path part of an URL as an array.
      * 
-     * @return true|false Indicates if the slug is empty or not.
+     * @return bool Indicates if the slug is empty or not.
      */
     public function is_empty_slug( $path_parts ) 
     {
@@ -677,7 +677,7 @@ class Merger {
      * @param string $haystack The string to search in.
      * @param string $needle The string to search for.
      * 
-     * @return true|false Indicates if the string ends with the received parameter or not.
+     * @return bool Indicates if the string ends with the received parameter or not.
      */
     function ends_with( $haystack, $needle )
     {
@@ -712,7 +712,7 @@ class Merger {
      * @param string $copy_locale Locale used to get translations that are not present in the base locale.
      * @param string $core Major core version, or null if the parameter is not set.
      * 
-     * @return true|false Indicates if the process was successful or not.
+     * @return bool Indicates if the process was successful or not.
      */
     public function process_pos( $url, $base_locale, $copy_locale, $core ) 
     {
@@ -873,7 +873,7 @@ class Merger {
      * 
      * @param string $po_file_path Path of the *.po file.
      * 
-     * @return true|false Indicates if the *.po file contains only the header. 
+     * @return bool Indicates if the *.po file contains only the header. 
      */
     public function has_only_header( $po_file_path ) 
     {
