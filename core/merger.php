@@ -1499,35 +1499,16 @@ class Merger {
         {
             for ( $i = 0; $i < count( $merged_content ); ++$i ) 
             {
-                $content_as_string = $this->array_into_string( $merged_content[$i] );
+                $content_as_string = implode( '', $merged_content[$i] );
                 $filename = getcwd() . '/' . $result_name[$i];
                 file_put_contents( $filename, rtrim ( $content_as_string ) );
             }
         }
         else 
         {
-            $content_as_string = $this->array_into_string( $merged_content );
+            $content_as_string = implode( '', $merged_content );
             $filename = getcwd() . '/' . $result_name;
             file_put_contents( $filename, rtrim ( $content_as_string ) );
         }
-    }
-
-    /**
-     * Transforms an array into a string.
-     * 
-     * @param array Array to transform.
-     *
-     * @return string Array as a string.
-     */
-    public function array_into_string( $array ) 
-    {
-        $result = null;
-
-        foreach ( $array as $string ) 
-        {
-            $result .= $string;
-        }
-
-        return $result;
     }
 }
