@@ -19,25 +19,24 @@ Then run the following command to install the project:
 PO Merger lets you merge PO files two different ways:
 
 - With the URL of a project found on the WordPress repository
+- With the translation URL of a project in the WordPress repository (including meta and apps)
 - With the core version of WordPress
 
 To merge two PO files from a WordPress project, use the following command:
 
-    wp po merge <base-locale> <copy-locale> <url>
+    wp po merge <base-locale> <copy-locale> <source>
 
 To merge two PO files from a WordPress core version, use the following command:
 
     wp po merge <base-locale> <copy-locale> <version>
 
 ## Parameters
+| Parameter | Description |
+| ------ | ------ |
+| `<base-locale>` | Main locale used for the merge. |
+| `<copy-locale>` | Locale used to get translations that are not present in the base locale. |
+| `<source>` | Source can be a WordPress plugin or theme main page URL, a WordPress project translation URL (plugin, theme, meta or apps) or a WordPress core version. |
 
-`<base-locale>` Main locale used for the merge.
-
-`<copy-locale>` Locale used to get translations that are not present in the base locale.
-
-`<url>` WordPress project (plugin or theme) main page URL, or WordpPress project (plugin, theme, meta or apps) translation URL.
-
-`<version>` WordPress core version.
 
 ## Examples
 
@@ -64,15 +63,15 @@ Merging FR locale into FR-CA for WordPress 5.0
 | `--mark-copy-as-fuzzy` | Marks the translations obtained from the copy locale as fuzzy.|
 | `--mcaf` | Alias of the `--mark-copy-as-fuzzy` parameter. |
 | `--status=<filter1>,<filter2>,...` |	Specifies the filter(s) for the base locale download URL. List of valid filters: current, untranslated, fuzzy, waiting, rejected, old. Some of the filters may be mutually exclusive.|
-| `--diff-only` |	Generates a result PO file containing only the diffential strings (untranslated).|
+| `--diff-only` |	Generates a result PO file containing only the differential strings (untranslated).|
 | `--username` | Get the translations from the specific contributor (WordPress.org username).|
-| `--test` | Allows to conduct local tests. See Testing Localy section for details.|
+| `--test` | Allows to conduct local tests. See Testing Locally section for details.|
 
 
 
-## Testing the commands localy
+## Testing the commands locally
 
-A WordPress PO file may contain tens of thousand of lines and it can be difficult to verify the result of the merging process. Thus, the package allows to create small PO files locally and use them for merging.
+A WordPress PO file may contain tens of thousands of lines and it can be difficult to verify the result of the merging process. Thus, the package allows to create small PO files locally and use them for merging.
 
 The `--test` parameter allows to read PO files defined in the `tests/<base-locale>` and `tests/<copy-locale>` folders, instead of downloading from the WordPress server. The PO files should have the valid WordPress PO format and their names should contain exactly the same locale as their current folders, preceding by the -.
 
@@ -91,12 +90,12 @@ The `--test` parameter allows to read PO files defined in the `tests/<base-local
 |`<base-locale>` | The folder `tests/<base-locale>` |
 |`<copy-locale>`	| The folder `tests/<copy-locale>` |
 |`<type>` |	`plugins` or `themes` |
-|`<name of the file>` |  The name of the file without the the locale and PO extension |
+|`<name of the file>` |  The name of the file without the locale and PO extension |
 |`<optional parameter>`	| Optional parameter |
 
-In this example, the contents of the files `tests/fr-ca/test-fuzzy-fr-ca.po` and `tests/fr/test-fuzzy-fr.po` will be processed. If the base locale doesn't have a given translation, it will be searched in the copy locale and if found, copied to the base locale. If in the base locale a given translation exists already, if won't be replaced by the translation from the copy locale.
+In this example, the content of the files `tests/fr-ca/test-fuzzy-fr-ca.po` and `tests/fr/test-fuzzy-fr.po` will be processed. If the base locale doesn't have a given translation, it will be searched in the copy locale and if found, copied to the base locale. If in the base locale a given translation exists already, it won't be replaced by the translation from the copy locale.
 
-The output will be saved in the directory where the command wp po merge was executed, with the name `wp-<type>-<name provided in the URL>-<base-locale>-merged.po`
+The output will be saved in the directory where the command was executed, with the name `wp-<type>-<slug>-<base-locale>-merged.po`
 
 ### Example
 
@@ -105,10 +104,10 @@ The output will be saved in the directory where the command wp po merge was exec
 ### Optional parameters
 The optional parameters supported in the test mode are `--mark-copy-as-fuzzy/mcaf` and `--fuzzy=<file>`.
 
-The package comes with the test PO files, where you can add your own strings to test.
+The package comes with the test PO files where you can add your own strings to test.
 
 ## Maintainers
-This project was created and is maintained by [SatelliteWP](https://www.satellitewp.com/en). The project was started during an internship by Pavel Zaharciuc.
+This project was created and is maintained by [SatelliteWP](https://www.satellitewp.com/en?utm_source=po-merger). The project was started during an internship by Pavel Zaharciuc.
 
 ## Contributing
 Ideas are welcome.
