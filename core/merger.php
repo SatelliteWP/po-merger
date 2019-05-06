@@ -1351,13 +1351,7 @@ class Merger {
 
             if ( $is_int ) 
             {
-                $major_core_version = $parts[0] . '.' . $parts[1];
-
-                // Validate the format.
-                if ( preg_match( '/^([0-9]{1}\.[0-9]{1})$/', $major_core_version ) ) 
-                {
-                    $result = $major_core_version;
-                }
+                $result = $parts[0] . '.' . $parts[1];
             }
         }
    
