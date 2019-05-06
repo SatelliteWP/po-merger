@@ -82,7 +82,7 @@ class Po_Extractor extends Po {
     public function extract_msgs() 
     {
         // Number of plural forms.
-        $nplurals = null;
+        $nplurals = 0;
         
         for ( $i = 0; $i < count( $this->po_content ); ++$i ) 
         {
@@ -162,7 +162,7 @@ class Po_Extractor extends Po {
      * if the array doesn't contain it already.
      * 
      * @param string $msgstr_pural Plural form.
-     * @param string $nplurals Number of plural forms.
+     * @param int $nplurals Number of plural forms.
      */
     public function add_plural_form( $msgstr_pural, $nplurals ) 
     {
@@ -184,11 +184,11 @@ class Po_Extractor extends Po {
      * 
      * @param string $nplurals_string String containing the number of plural forms.
      * 
-     * @return string|null Number of plural forms, or null if the process has failed.
+     * @return int Number of plural forms
      */
     public function get_nplurals( $nplurals_string ) 
     {
-        $result = null;
+        $result = 0;
 
         $string_parts = explode( ' ', $nplurals_string );
         
@@ -209,6 +209,6 @@ class Po_Extractor extends Po {
             }
         }
 
-        return $result;
+        return (int) $result;
     }
 }
