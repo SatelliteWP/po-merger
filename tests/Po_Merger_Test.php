@@ -2,7 +2,8 @@
 
 namespace satellitewp\po;
 
-include_once(__DIR__.'/../core/po_merger.php');
+include_once( 'functions.php' );
+include_once( __DIR__.'/../core/po_merger.php' );
 
 use PHPUnit\Framework\TestCase;
 

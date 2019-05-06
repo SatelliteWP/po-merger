@@ -2,7 +2,8 @@
 
 namespace satellitewp\po;
 
-include_once(__DIR__.'/../core/merger.php');
+include_once( 'functions.php' );
+include_once( __DIR__.'/../core/merger.php' );
 
 use PHPUnit\Framework\TestCase;
 
@@ -384,12 +385,14 @@ class Merger_Test extends TestCase
         $valid_core_2 = '5.0.1';
         $valid_core_3 = '4.2.20';
         $valid_core_4 = '1.5.1.1';
+        $valid_core_5 = '10.500.199';
 
         //Test valid core versions.
         $this->assertEquals( '4.9', $this->merger->get_major_core_version( $valid_core_1 ) );
         $this->assertEquals( '5.0', $this->merger->get_major_core_version( $valid_core_2 ) );
         $this->assertEquals( '4.2', $this->merger->get_major_core_version( $valid_core_3 ) );
         $this->assertEquals( '1.5', $this->merger->get_major_core_version( $valid_core_4 ) );
+        $this->assertEquals( '10.500', $this->merger->get_major_core_version( $valid_core_5 ) );
 
         // Invalid core versions.
         $invalid_core_1 = '4';
@@ -412,11 +415,13 @@ class Merger_Test extends TestCase
         $valid_core_2 = '5.0.1';
         $valid_core_3 = '4.2.20';
         $valid_core_4 = '1.5.1.1';
+        $valid_core_5 = '10.500.199';
 
         $this->assertEquals( '4.9.x', $this->merger->create_core_version_for_url( $valid_core_1 ) );
         $this->assertEquals( '5.0.x', $this->merger->create_core_version_for_url( $valid_core_2 ) );
         $this->assertEquals( '4.2.x', $this->merger->create_core_version_for_url( $valid_core_3 ) );
         $this->assertEquals( '1.5.x', $this->merger->create_core_version_for_url( $valid_core_4 ) );
+        $this->assertEquals( '10.500.x', $this->merger->create_core_version_for_url( $valid_core_5 ) );
         // End of the test.
 
         // Test invalid core versions.

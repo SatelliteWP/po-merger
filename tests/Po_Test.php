@@ -2,7 +2,8 @@
 
 namespace satellitewp\po;
 
-include_once(__DIR__.'/../core/po.php');
+include_once( 'functions.php' );
+include_once( __DIR__.'/../core/po.php' );
 
 use PHPUnit\Framework\TestCase;
 
