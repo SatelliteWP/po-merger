@@ -76,7 +76,7 @@ class Po_Merger extends Po
      * Constructor.
      * 
      * @param array $fuzzy_string Strings (words, expressions, etc) that need to be revised in a translation.
-     * @param boolean $is_mcaf 
+     * @param boolean $is_mcaf Is "marked copy as fuzzy" activated?
      */
     public function __construct( $fuzzy_strings, $is_mcaf )
     {
