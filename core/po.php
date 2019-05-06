@@ -41,7 +41,7 @@ class Po
     /**
      * Gets the msg part of the string (msgid, msgid_plural, msgstr, msgstr[0], etc) and its content.
      * 
-     * @param $msg_string
+     * @param string $msg_string String to extract data from.
      * 
      * @return array Associative array with the obtained information.
      */
