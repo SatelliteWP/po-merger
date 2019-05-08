@@ -40,11 +40,8 @@ class Po_Command extends \WP_CLI_Command {
 	 * <copy-locale>
 	 * : Locale used to get translations that are not present in the base locale.
 	 *
-	 * <URL>
-	 * : URL of the project.
-	 *
-	 * <version>
-	 * : Core version.
+	 * <source>
+	 * : URL of the project or core version
 	 *
 	 * ## EXAMPLES
 	 *
