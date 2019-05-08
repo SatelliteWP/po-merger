@@ -18,13 +18,13 @@ if ( !defined( 'WP_CLI' ) ) return;
  *
  *  ## EXAMPLES
  *
- *      # Merge for basic usage.
+ *      # Merge for the the URL of a plugin or theme found on the WordPress repository.
  *      $ wp po merge fr-ca fr https://wordpress.org/plugins/wordpress-seo/
  *
- *      # Merge for Custom locale.
+ *      # Merge for the translation URL of a project in the WordPress repository (including meta and apps).
  *      $ wp po merge fr-ca fr https://translate.wordpress.org/locale/fr-ca/default/wp-plugins/wordpress-seo/
  *
- *      # Merge for Custom version of WordPress.
+ *      # Merge for the core version of WordPress.
  *      $ wp po merge fr-ca fr 5.0
  */
 class Po_Command extends \WP_CLI_Command {
@@ -48,13 +48,13 @@ class Po_Command extends \WP_CLI_Command {
 	 *
 	 * ## EXAMPLES
 	 *
-	 *      # Merge for basic usage.
+	 *      # Merge for the the URL of a plugin or theme found on the WordPress repository.
 	 *      $ wp po merge fr-ca fr https://wordpress.org/plugins/wordpress-seo/
 	 *
-	 *      # Merge for Custom locale.
+	 *      # Merge for the translation URL of a project in the WordPress repository (including meta and apps).
 	 *      $ wp po merge fr-ca fr https://translate.wordpress.org/locale/fr-ca/default/wp-plugins/wordpress-seo/
 	 *
-	 *      # Merge for Custom version of WordPress.
+	 *      # Merge for the core version of WordPress.
 	 *      $ wp po merge fr-ca fr 5.0
 	 *
 	 * @when before_wp_load
