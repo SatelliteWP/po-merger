@@ -22,9 +22,9 @@ PO Merger lets you merge PO files two different ways:
 - With the translation URL of a project in the WordPress repository (including meta and apps)
 - With the core version of WordPress
 
-To merge two PO files from a WordPress project, use the following command:
+To merge two PO files from a WordPress project URL, use the following command:
 
-    wp po merge <base-locale> <copy-locale> <source>
+    wp po merge <base-locale> <copy-locale> <url>
 
 To merge two PO files from a WordPress core version, use the following command:
 
