@@ -32,7 +32,7 @@ class Po_Command extends \WP_CLI_Command {
 	/**
 	 * Merge of two PO files of similar languages.
 	 *
-	 * ## OPTIONS
+	 * # # OPTIONS
 	 *
 	 * <base-locale>
 	 * : Main locale used for the merge.
