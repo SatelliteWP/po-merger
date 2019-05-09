@@ -86,4 +86,7 @@ class Po_Command extends \WP_CLI_Command {
 	}
 }
 
+// Temporary hack
+function __( $text ) { return $text; }
+
 \WP_CLI::add_command( 'po',  __NAMESPACE__ . '\\Po_Command' );
