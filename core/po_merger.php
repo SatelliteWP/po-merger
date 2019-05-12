@@ -87,19 +87,19 @@ class Po_Merger extends Po
     /**
      * Sets the parameters.
      * 
-     * @param array $base_content Content of the base locale *.po. 
-     * @param array $extracted_msgs Extracted msg strings from the copy locale *.po.
+     * @param array $base_content Content of the base locale PO. 
+     * @param array $copy_content Content of the copy locale PO.
      */
-    public function initialize( $base_content, $extracted_msgs ) 
+    public function initialize( $base_content, $copy_content ) 
     {
         // Copy the initial content from the base locale.
         $this->merged_content = $base_content;
         
-        $this->msgids_copy         = $extracted_msgs['msgids'];
-        $this->msgids_plural_copy  = $extracted_msgs['msgids_plural'];
-        $this->msgstrs_copy        = $extracted_msgs['msgstrs'];
-        $this->msgstrs_plural_copy = $extracted_msgs['msgstrs_plural'];
-        $this->plural_forms        = $extracted_msgs['plural_forms'];
+        $this->msgids_copy         = $copy_content['msgids'];
+        $this->msgids_plural_copy  = $copy_content['msgids_plural'];
+        $this->msgstrs_copy        = $copy_content['msgstrs'];
+        $this->msgstrs_plural_copy = $copy_content['msgstrs_plural'];
+        $this->plural_forms        = $copy_content['plural_forms'];
     }
 
      /**
