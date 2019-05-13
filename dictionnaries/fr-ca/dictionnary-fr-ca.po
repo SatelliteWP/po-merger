@@ -1,0 +1,375 @@
+msgid ""
+msgstr ""
+"French canadian dictionnary\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"Language: fr_CA\n"
+
+msgid "One thought on &ldquo;%1$s&rdquo;"
+msgstr "Une réflexion à propos de &ldquo;%1$s&rdquo;"
+
+msgid "%1$s thought on &ldquo;%2$s&rdquo;"
+msgid_plural "%1$s thoughts on &ldquo;%2$s&rdquo;"
+msgstr[0] "%1$s réflexion sur &laquo;&nbsp;%2$s&nbsp;&raquo;"
+msgstr[1] "%1$s réflexions sur &laquo;&nbsp;%2$s&nbsp;&raquo;"
+
+msgid "White"
+msgstr "Blanc"
+
+msgid "Light Gray"
+msgstr "Gris clair"
+
+msgid "Medium Gray"
+msgstr "Gris moyen"
+
+msgid "Dark Gray"
+msgstr "Gris foncé"
+
+msgid "Black"
+msgstr "Noir"
+
+msgid "Blue"
+msgstr "Bleu"
+
+msgid "Sidebar Template"
+msgstr "Gabarit de colonne latérale"
+
+msgid "Showcase Template"
+msgstr "Gabarit de portfolio"
+
+msgid "Tag Archives: %s"
+msgstr "Archives de mot-clé : %s"
+
+msgid "Meta"
+msgstr "Méta"
+
+msgid "Archives"
+msgstr "Archives"
+
+msgid "Recent Posts"
+msgstr "Articles récents"
+
+msgid "Featuring: %s"
+msgstr "Mettant en vedette : %s"
+
+msgid "Featured Post"
+msgstr "Article en vedette"
+
+msgid "Search"
+msgstr "Recherche"
+
+msgctxt "submit button"
+msgid "Search"
+msgstr "Rechercher"
+
+msgid "Search Results for: %s"
+msgstr "Résultats de recherche pour : %s"
+
+msgid "Number of posts to show:"
+msgstr "Nombre d'articles à afficher :"
+
+msgid "Title:"
+msgstr "Titre :"
+
+msgid "Layout"
+msgstr "Disposition"
+
+msgid "%s Theme Options"
+msgstr "Options du thème %s"
+
+msgid "Default color: %s"
+msgstr "Couleur par défaut : %s"
+
+msgid "Select a Color"
+msgstr "Choisir une couleur"
+
+msgid "Content on right"
+msgstr "Contenu à droite"
+
+msgid "Content on left"
+msgstr "Contenu à gauche"
+
+msgid "Dark"
+msgstr "Sombre"
+
+msgid "Light"
+msgstr "Clair"
+
+msgid "Overview"
+msgstr "Aperçu"
+
+msgid "For more information:"
+msgstr "Plus d'informations :"
+
+msgid "Theme Options"
+msgstr "Options du thème"
+
+msgid "Default Layout"
+msgstr "Disposition par défaut"
+
+msgid "Link Color"
+msgstr "Couleur des liens"
+
+msgid "Color Scheme"
+msgstr "Palette de couleurs"
+
+msgid "Next &rarr;"
+msgstr "Suivant &rarr;"
+
+msgid "&larr; Previous"
+msgstr "&larr; Précédent"
+
+msgid "Image navigation"
+msgstr "Navigation des images"
+
+msgid "Skip to secondary content"
+msgstr "Aller au contenu secondaire"
+
+msgid "Skip to primary content"
+msgstr "Aller au contenu principal"
+
+msgid "Menu"
+msgstr "Menu"
+
+msgid "Main menu"
+msgstr "Menu principal"
+
+msgid "Primary Menu"
+msgstr "Menu principal"
+
+msgid "Page %s"
+msgstr "Page %s"
+
+msgid "Pingback:"
+msgstr "Ping :"
+
+msgid "Post navigation"
+msgstr "Navigation de l'article"
+
+msgid "Footer Area Three"
+msgstr "Zone 3 du pied de page"
+
+msgid "Footer Area Two"
+msgstr "Zone 2 du pied de page"
+
+msgid "Footer Area One"
+msgstr "Zone 1 du pied de page"
+
+msgid "Showcase Sidebar"
+msgstr "Colonne latérale de portfolio"
+
+msgid "Main Sidebar"
+msgstr "Colonne principale"
+
+msgid "Willow"
+msgstr "Saule"
+
+msgid "Lanterns"
+msgstr "Lanternes"
+
+msgid "Chessboard"
+msgstr "Échiquier"
+
+msgid "Pine Cone"
+msgstr "Cône de pin"
+
+msgid "Trolley"
+msgstr "Tramway"
+
+msgid "Shore"
+msgstr "Plage"
+
+msgid "Wheel"
+msgstr "Roue"
+
+msgid "Proudly powered by %s"
+msgstr "Fièrement propulsé par %s"
+
+msgid "Semantic Personal Publishing Platform"
+msgstr "Plate-forme sémantique de publication personnelle"
+
+msgid "Featured"
+msgstr "En vedette"
+
+msgid "Status"
+msgstr "État"
+
+msgid "Quote"
+msgstr "Citation"
+
+msgid "Link"
+msgstr "Lien"
+
+msgid "View all posts by %s"
+msgstr "Voir tous les articles de %s"
+
+msgid "Image"
+msgstr "Image"
+
+msgid "Images"
+msgstr "Images"
+
+msgid "Video"
+msgstr "Vidéo"
+
+msgid "Videos"
+msgstr "Vidéos"
+
+msgid "Permalink to %s"
+msgstr "Permalien vers %s"
+
+msgid "Gallery"
+msgstr "Galerie"
+
+msgid "Edit"
+msgstr "Modifier"
+
+msgid "<b>%</b> Replies"
+msgstr "<b>%</b> Commentaires"
+
+msgid "<b>1</b> Reply"
+msgstr "<b>1</b> Commentaire"
+
+msgid "Leave a reply"
+msgstr "Laisser un commentaire"
+
+msgid "Pages:"
+msgstr "Pages :"
+
+msgid "%"
+msgstr "%"
+
+msgid "Reply"
+msgstr "Répondre"
+
+msgid "Aside"
+msgstr "À-coté"
+
+msgid "Comments are closed."
+msgstr "Les commentaires sont fermés."
+
+msgid "Newer Comments &rarr;"
+msgstr "Commentaires plus récents &rarr;"
+
+msgid "&larr; Older Comments"
+msgstr "&larr; Commentaires précédents"
+
+msgid "Comment navigation"
+msgstr "Navigation des commentaires"
+
+msgid "This post is password protected. Enter the password to view any comments."
+msgstr ""
+"Cet article est protégé par un mot de passe. Entrez le mot de passe pour lire le"
+"s commentaires."
+
+msgid "Category Archives: %s"
+msgstr "Archives de catégorie : %s"
+
+msgid "About %s"
+msgstr "À propos de %s"
+
+msgid "Author Archives: %s"
+msgstr "Archives d’auteur : %s"
+
+msgid "Nothing Found"
+msgstr "Inaccessible"
+
+msgid "Blog Archives"
+msgstr "Archives du blogue"
+
+msgctxt "yearly archives date format"
+msgid "Y"
+msgstr "Y"
+
+msgid "Yearly Archives: %s"
+msgstr "Archives annuelles : %s"
+
+msgctxt "monthly archives date format"
+msgid "F Y"
+msgstr "F Y"
+
+msgid "Monthly Archives: %s"
+msgstr "Archives mensuelles : %s"
+
+msgid "Daily Archives: %s"
+msgstr "Archives quotidiennes : %s"
+
+msgid "Try looking in the monthly archives. %1$s"
+msgstr "Nous vous suggérons de parcourir les archives mensuelles. %1$s"
+
+msgid "Most Used Categories"
+msgstr "Catégories les plus utilisées"
+
+msgid "This is somewhat embarrassing, isn&rsquo;t it?"
+msgstr "Voilà qui est embarrassant."
+
+msgid "the WordPress team"
+msgstr "L'équipe WordPress"
+
+msgid "https://wordpress.org/"
+msgstr "https://fr-ca.wordpress.org/"
+
+msgid ""
+"Sorry, but nothing matched your search terms. Please try again with some differe"
+"nt keywords."
+msgstr ""
+"Désolé, mais rien ne correspond à vos critères. Réessayez en modifiant les terme"
+"s de recherche."
+
+msgid "Sidebar"
+msgstr "Colonne latérale"
+
+
+
+msgid "Accent color"
+msgstr "Couleur d'accentuation"
+
+msgid "Colors"
+msgstr "Couleurs"
+
+msgid "Footer Logo"
+msgstr "Logo du pied de page"
+
+msgid "Logo"
+msgstr "Logo"
+
+msgid ", "
+msgstr ", "
+
+msgid "% Comments"
+msgstr "% commentaires"
+
+msgid "1 Comment"
+msgstr "Un commentaire"
+
+msgid "Leave a comment"
+msgstr "Laisser un commentaire"
+
+msgid "Comments are closed."
+msgstr "Les commentaires sont fermés."
+
+msgid "Links"
+msgstr "Liens"
+
+msgid "Quotes"
+msgstr "Citations"
+
+msgid "Year: %s"
+msgstr "Année : %s"
+
+msgid "Month: %s"
+msgstr "Mois : %s"
+
+msgid "Day: %s"
+msgstr "Jour : %s"
+
+msgid "Author: %s"
+msgstr "Auteur : %s"
+
+msgid "Most Used Categories"
+msgstr "Catégories les plus utilisées"
+
+msgid "Oops! That page can&rsquo;t be found."
+msgstr "Oups! Cette page est introuvable."
