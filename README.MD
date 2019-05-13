@@ -110,4 +110,8 @@ The package comes with the test PO files where you can add your own strings to t
 This project was created and is maintained by [SatelliteWP](https://www.satellitewp.com/en?utm_source=po-merger). The project was started during an internship by Pavel Zaharciuc.
 
 ## Contributing
-Ideas are welcome.
+- Fill fr-ca strings with existing fr-ca translation dictionnaries (from 100% translated themes and plugins)
+- Update a static dictionnary containing validated string translations
+- Create a dynamic dictionnary containing translations from 100% translated themes and plugins and counted to mark as candidate for static dictionnary
+- Correct already 100% translated themes and plugins with dictionnary translations (to have same translation everywhere ie: `settings` translated everywhere to `réglages` and not to `paramètres`
+- Translate batch files by night applying update in dictionnaries and translate themes and plugins based on dictionnaries updates
