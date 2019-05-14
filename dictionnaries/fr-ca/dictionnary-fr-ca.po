@@ -15,6 +15,201 @@ msgid_plural "%1$s thoughts on &ldquo;%2$s&rdquo;"
 msgstr[0] "%1$s réflexion sur &laquo;&nbsp;%2$s&nbsp;&raquo;"
 msgstr[1] "%1$s réflexions sur &laquo;&nbsp;%2$s&nbsp;&raquo;"
 
+msgid "Footer"
+msgstr "Bas de page"
+
+msgid "Blog Sidebar"
+msgstr "Barre latérale du blogue"
+
+msgid "Scroll down to content"
+msgstr "Défiler vers le bas jusqu'au contenu"
+
+msgid "Coffee"
+msgstr "Café"
+
+msgid "Sandwich"
+msgstr "Sandwich"
+
+msgid "Espresso"
+msgstr "Expresso"
+
+msgid "Next Post"
+msgstr "Article suivant"
+
+msgid "Posts"
+msgstr "Articles"
+
+msgid "Tags"
+msgstr "Étiquettes"
+
+msgid "Categories"
+msgstr "Catégories"
+
+msgid ", "
+msgstr ", "
+
+msgid "by %s"
+msgstr "par %s"
+
+
+msgid "Front Page Section %d Content"
+msgstr "Contenu %d de section de page d’accueil"
+
+msgid "Two Column"
+msgstr "Deux colonnes"
+
+msgid "One Column"
+msgstr "Une colonne"
+
+msgid "Page Layout"
+msgstr "Mise en page"
+
+msgid "Theme Options"
+msgstr "Options du thème"
+
+msgid "Custom"
+msgstr "Personnalisé"
+
+msgid "Color Scheme"
+msgstr "Palette de couleurs"
+
+msgid "Default Header Image"
+msgstr "Image d’en-tête par défaut"
+
+msgid "Footer 2"
+msgstr "Pied de page 2"
+
+msgid "Add widgets here to appear in your footer."
+msgstr "Ajoutez ici des widgets qui apparaîtront dans votre pied de page."
+
+msgid "Footer 1"
+msgstr "Pied de page 1"
+
+msgid "on"
+msgstr "on"
+
+msgid "Top Menu"
+msgstr "Menu du haut"
+
+msgid "Reply"
+msgstr "Répondre"
+
+
+msgid "Default"
+msgstr "Valeur par défaut"
+
+msgid "Secondary"
+msgstr "Secondaire"
+
+msgid "XL"
+msgstr "TG"
+
+msgid "Huge"
+msgstr "Énorme"
+
+msgid "L"
+msgstr "G"
+
+msgid "Large"
+msgstr "Grand"
+
+msgid "M"
+msgstr "M"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Small"
+msgstr "Petit"
+
+msgid "S"
+msgstr "P"
+
+msgid "Footer Menu"
+msgstr "Menu du pied de page"
+
+msgid "Full size"
+msgstr "Taille réelle"
+
+msgid "Primary Color"
+msgstr "Couleur principale"
+
+msgid "No comments"
+msgstr "Aucun commentaire"
+
+msgid "View more posts"
+msgstr "Voir plus d’articles"
+
+msgid "Published by %s"
+msgstr "Publié par %s"
+
+msgid "Previous post:"
+msgstr "Article précédent :"
+
+msgid "Next post:"
+msgstr "Article Suivant :"
+
+msgid "Search results for:"
+msgstr "Résultats de recherche pour :"
+
+msgid "Older posts"
+msgstr "Anciens articles"
+
+msgid "Newer posts"
+msgstr "Articles plus récents"
+
+msgid "Tags:"
+msgstr "Étiquettes&nbsp;:"
+
+msgid "Posted in"
+msgstr "Publié dans"
+
+
+msgid "Posted by"
+msgstr "Publié par"
+
+msgid "F Y"
+msgstr "F Y"
+
+msgid "Y"
+msgstr "Y"
+
+msgid "Archives:"
+msgstr "Archives :"
+
+msgid "%s Archives:"
+msgstr "%s archives : "
+
+msgid "Post Type Archives: "
+msgstr "Archives du type de contenu : "
+
+msgid "Daily Archives: "
+msgstr "Archives quotidiennes : "
+
+msgid "Monthly Archives: "
+msgstr "Archives mensuelles : "
+
+msgid "Yearly Archives: "
+msgstr "Archives annuelles : "
+
+msgid "Author Archives: "
+msgstr "Archives de l’auteur(e) : "
+
+msgid "Tag Archives: "
+msgstr "Archives de l’étiquette : "
+
+msgid "Category Archives: "
+msgstr "Archives de la catégorie : "
+
+msgid "Primary"
+msgstr "Principal"
+
+msgid "Proudly powered by %s."
+msgstr "Fièrement propulsé par %s"
+
+msgid "Comments"
+msgstr "Commentaires"
+
 msgid "White"
 msgstr "Blanc"
 

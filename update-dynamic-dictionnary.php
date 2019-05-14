@@ -26,8 +26,8 @@ use satellitewp\po\Merger;
 use satellitewp\po\Dictionnary;
 
 // @TODO : remove
-$argv[1] = 'fr-ca';
-$argv[2] = 'https://wordpress.org/themes/weaver-xtreme/';
+//$argv[1] = 'fr-ca';
+//$argv[2] = 'https://wordpress.org/themes/weaver-xtreme/';
 
 
 
@@ -47,7 +47,7 @@ $pluginUrl = 'https://translate.wordpress.org/locale/'.$locale.'/default/stats/p
 
 $dictionnariesPath = './dictionnaries/'.$locale.'/';
 $dictionnaryName = $dictionnariesPath.'dictionnary-'.$poExtension;
-$dictionnaryName = $dictionnariesPath.'fake-static-dictionnary-'.$poExtension;
+//$dictionnaryName = $dictionnariesPath.'fake-static-dictionnary-'.$poExtension; // @TODO: remove
 $dynamicDictionnaryName = $dictionnariesPath.'dynamic-dictionnary-'.$poExtension;
 
 $start = time();
