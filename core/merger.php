@@ -462,7 +462,7 @@ class Merger {
         return $result;
     }
 
-     /**
+    /**
      * Verifies if a string is an URL.
      * 
      * @param string $string String to verify.
@@ -631,7 +631,7 @@ class Merger {
         else 
         {
             // Verify if it's a translate URL.
-            if ( count( $path_parts ) >=5 ) 
+            if ( count( $path_parts ) >= 5 ) 
             {
                 if ( in_array( $path_parts[4], $this->url_translate_types ) ) 
                 {
