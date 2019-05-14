@@ -119,8 +119,8 @@ class Po_Merger extends Po
             $current = $this->merged_content[$i];
             
             // If it's an msg string.
-            if ( strpos( $current, $this->msg_strings[self::MSGID] ) !== false  || 
-                 strpos( $current, $this->msg_strings[self::MSGSTR] ) !== false ) 
+            if ( strpos( $current, $this->msg_types[self::MSGID] ) !== false  || 
+                 strpos( $current, $this->msg_types[self::MSGSTR] ) !== false ) 
             {
                 // Extract the msg part of the string.
                 $msg = $this->get_msg_and_content( $current )['msg'];
@@ -131,17 +131,19 @@ class Po_Merger extends Po
                     switch ( $msg ) 
                     {
                         // If it's an msgid string, save its index.
-                        case $msg == $this->msg_strings[self::MSGID]:
+                        case $this->msg_types[self::MSGID]:
                             $msgid_index = $i;
                             break;
 
-                        // Verify if the translation doesn't exist in the base locale and search for it in the copy locale.
-                        case $msg == $this->msg_strings[self::MSGSTR]:
+                        // Verify if the translation doesn't exist in the base locale and search for
+                        // it in the copy locale.
+                        case $this->msg_types[self::MSGSTR]:
                             $this->process_singular_msgstr( $msgid_index, $i, $current );
                             break;
 
-                        // Verify if the plural translations don't exist in the base locale and search for them in the copy locale.
-                        case $msg == $this->msg_strings[self::MSGID_PLURAL]:
+                        // Verify if the plural translations don't exist in the base locale and search 
+                        // for them in the copy locale.
+                        case $this->msg_types[self::MSGID_PLURAL]:
                             $this->process_plural_msgstrs( $msgid_index, $i, $current );
                             break;
                     }

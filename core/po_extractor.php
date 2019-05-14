@@ -95,23 +95,23 @@ class Po_Extractor extends Po {
             }
             
             // If it's an msg string.
-            if ( strpos( $current, $this->msg_strings[self::MSGID] ) !== false ||
-                 strpos( $current, $this->msg_strings[self::MSGSTR] ) !== false ) 
+            if ( strpos( $current, $this->msg_types[self::MSGID] ) !== false ||
+                 strpos( $current, $this->msg_types[self::MSGSTR] ) !== false ) 
             {
                 $msg = $this->get_msg_and_content( $current )['msg'];
 
                 switch ( $msg ) 
                 {
                     // If it's not a plural case, add the msgid into the $msgids array.
-                    case $msg == $this->msg_strings[self::MSGID]:
+                    case $msg == $this->msg_types[self::MSGID]:
                         $this->process_msgid( $current, $this->po_content[$i + 1] );
                         break;
 
-                    case $msg == $this->msg_strings[self::MSGSTR]:
+                    case $msg == $this->msg_types[self::MSGSTR]:
                         $this->msgstrs[] = $current;
                         break;
 
-                    case $msg == $this->msg_strings[self::MSGID_PLURAL]:
+                    case $msg == $this->msg_types[self::MSGID_PLURAL]:
                         $this->msgids_plural[] = $current;
                         break;
 
@@ -151,7 +151,7 @@ class Po_Extractor extends Po {
         $next_msg = $this->get_msg_and_content( $next_string )['msg'];
         
         // If it's not an msgid_plural, extract the msgid into the $msgids array.
-        if ( $next_msg != $this->msg_strings[self::MSGID_PLURAL] ) 
+        if ( $next_msg != $this->msg_types[self::MSGID_PLURAL] ) 
         {
             $this->msgids[] = $msgid;
         }

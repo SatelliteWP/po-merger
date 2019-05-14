@@ -19,52 +19,54 @@ namespace satellitewp\po;
 class Po 
 {
     /**
-     * Index of the 'msgid' string in the @see $msg_strings array.
+     * Index of the 'msgid' string in the @see $msg_types array.
      */
     const MSGID = 0;
 
     /**
-     * Index of the 'msgstr' string in the @see $msg_strings array.
+     * Index of the 'msgstr' string in the @see $msg_types array.
      */
     const MSGSTR = 1;
 
     /**
-     * Index of the 'msgid_plural' string in the @see $msg_strings array.
+     * Index of the 'msgid_plural' string in the @see $msg_types array.
      */
     const MSGID_PLURAL = 2;
     
     /**
      * msg strings to verify while extracting and merging strings.
      */
-    protected $msg_strings = array( 'msgid', 'msgstr', 'msgid_plural' );
+    protected $msg_types = array( 'msgid', 'msgstr', 'msgid_plural' );
 
     /**
      * Gets the msg part of the string (msgid, msgid_plural, msgstr, msgstr[0], etc) and its content.
      * 
-     * @param string $msg_string String to extract data from.
+     * @param string $line String to extract data from.
      * 
-     * @return array Associative array with the obtained information.
+     * @return array Message type (msg) and content (content)
      */
-    public function get_msg_and_content( $msg_string ) 
+    public function get_msg_and_content( $line ) 
     {
+        $result = array(
+            'msg' => null,
+            'content' => null,
+        );
         $msg = null;
         $content = null;
 
-        $string_parts = explode( '"', $msg_string );
+        $string_parts = explode( '"', $line );
         
         if ( count( $string_parts ) > 1 ) 
         {
             $string = str_replace( ' ', '', $string_parts[0] );
 
-            if ( preg_match( '/^(msgstr\[[0-9]\])$/', $string ) || in_array( $string, $this->msg_strings ) ) 
+            if ( preg_match( '/^(msgstr\[[0-9]\])$/', $string ) || in_array( $string, $this->msg_types ) ) 
             {
                 $msg = $string;
                 $content = $string_parts[1];
             }
         }
-        return array(
-            'msg' => $msg,
-            'content' => $content,
-        );
+        
+        return $result;
     }
 }
