@@ -43,7 +43,7 @@ $locale = $argv[1];
 $poExtension = $locale.'.po';
 
 $themeUrl = 'https://translate.wordpress.org/locale/'.$locale.'/default/stats/themes/';
-$pluginUrl = 'https://translate.wordpress.org/locale/'.$locale.'/default/stats/plugins/';
+//$pluginUrl = 'https://translate.wordpress.org/locale/'.$locale.'/default/stats/plugins/'; // @TODO use this line for dynamic dictionnary
 
 $dictionnariesPath = './dictionnaries/'.$locale.'/';
 $dictionnaryName = $dictionnariesPath.'dictionnary-'.$poExtension;
@@ -53,6 +53,14 @@ $dynamicDictionnaryName = $dictionnariesPath.'dynamic-dictionnary-'.$poExtension
 $start = time();
 echo "Strarting...";
 echo "\n";
+
+if (!file_exists($dictionnariesPath)) {
+    mkdir($dictionnariesPath, 0777, true);
+}
+
+if (!file_exists($dictionnariesPath)) {
+    mkdir($dictionnariesPath, 0777, true);
+}
 
 // Go get all themes 100% translated in $locale
 echo 'Getting themes 100% translated from '.$themeUrl."\n";
@@ -64,6 +72,7 @@ $dictionnaries = $crawler->filter('td[data-sort-value="100"] a')->each(function 
     return $node->attr('href');
 });
 
+echo count($dictionnaries).' themes 100% translated'."\n";
 
 $merger = new Merger($args);
 if(false === $merger->has_valid_parameters()) {
@@ -76,18 +85,21 @@ if(false === $merger->can_start()) {
 
 /*
 */
-echo 'Building theme dictionnaries path'."\n";
+echo 'Building theme dictionnaries path in '.$merger->get_download_folder_path()."\n";
 foreach ($dictionnaries as $key => $value) {
 	$dictionnaries[$key] = 'https://translate.wordpress.org'.$value.'export-translations/';
 	$parts = explode('/', $value);
-	$pos_save_paths[$key] = $merger->get_download_folder_path().$parts[2].'-'.$parts[3].'-'.$poExtension;
-	echo 'Building '.$parts[3].'...'."\n";;
+	$themeName = $parts[3]; // theme name
+	// Comment $parts[2] = wp-theme
+	$pos_save_paths[$key] = $merger->get_download_folder_path().$parts[2].'-'.$themeName.'-'.$poExtension; 
+	echo 'Building '.$themeName.'...'."\n";
 }
 
-
+echo "\n";
 echo 'Downloading themes 100% translated as dictionnaries'."\n";
-//$merger->download_multiple_pos($pos_save_paths, $dictionnaries);
+$merger->download_multiple_pos($pos_save_paths, $dictionnaries);
 
+$staticDictionnary = new Dictionnary($dictionnaryName);
 $dynamicDictionnary = new Dictionnary($dynamicDictionnaryName);
 
 // @TODO : remove
@@ -108,15 +120,12 @@ $dynamicDictionnaryCatalog = $dynamicDictionnaryParser->parse();
 $dynamicDictionnaryEntries = $dynamicDictionnaryCatalog->getEntries();
 
 echo 'Fetching interesting translations'."\n";
-echo "\n";
-echo "\n";
 echo 'Used symbols legend:'."\n";
-echo '. = entry'."\n";
-echo '. = single string'."\n";
-echo '+ = plural string'."\n";
+echo '- = entry'."\n";
+//echo '. = single string'."\n";
+//echo '+ = plural string'."\n";
 echo '> = skipped translation'."\n";
 echo '* = executed translation'."\n";
-echo "\n";
 foreach ($pos_save_paths as $key => $value) {
 	$fileToTranslateHandler = new Sepia\PoParser\SourceHandler\FileSystem($value);
 	$guessbookParser = new Sepia\PoParser\Parser($fileToTranslateHandler);
@@ -154,6 +163,10 @@ foreach ($pos_save_paths as $key => $value) {
 		echo'*';
 		$dynamicDictionnaryCatalog->addEntry($entry);
 	}
+
+	echo "\n";
+	echo 'Removing file '.$value."\n";
+	unlink($value);
 }
 
 echo "\n";
@@ -162,7 +175,7 @@ echo "\n";
 $compiler = new Sepia\PoParser\PoCompiler();
 $dynamicDictionnaryHandler->save($compiler->compile($dynamicDictionnaryCatalog));
 
-//$merger->delete_downloaded_pos($pos_save_paths);
+//$merger->delete_downloaded_pos($pos_save_paths); // @TODO fin a way to use this
 
 $end = time();
 $time = ($end - $start);

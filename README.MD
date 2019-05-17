@@ -113,6 +113,7 @@ This project was created and is maintained by [SatelliteWP](https://www.satellit
 - Fill fr-ca strings with existing fr-ca translation dictionnaries (from 100% translated themes and plugins)
 - DONE Update a static dictionnary containing validated string translations
 - DONE Create a dynamic dictionnary containing translations from 100% translated themes and plugins and counted to mark as candidate for static dictionnary
+- Fill static dictionnary if translation is already present in dynamic dictionnary (indeed if a translation is found twice it worth i to have id in static dictionnary)
 - Also get translations from core, plugins, meta... to fill dynamic dictionnary
 - Correct already 100% translated themes and plugins with dictionnary translations (to have same translation everywhere ie: `settings` translated everywhere to `réglages` and not to `paramètres`
 - Translate batch files by night applying update in dictionnaries and translate themes and plugins based on dictionnaries updates
