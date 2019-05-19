@@ -103,15 +103,15 @@ class Po_Extractor extends Po {
                 switch ( $msg ) 
                 {
                     // If it's not a plural case, add the msgid into the $msgids array.
-                    case $msg == $this->msg_types[self::MSGID]:
+                    case $this->msg_types[self::MSGID]:
                         $this->process_msgid( $current, $this->po_content[$i + 1] );
                         break;
 
-                    case $msg == $this->msg_types[self::MSGSTR]:
+                    case $this->msg_types[self::MSGSTR]:
                         $this->msgstrs[] = $current;
                         break;
 
-                    case $msg == $this->msg_types[self::MSGID_PLURAL]:
+                    case $this->msg_types[self::MSGID_PLURAL]:
                         $this->msgids_plural[] = $current;
                         break;
 
