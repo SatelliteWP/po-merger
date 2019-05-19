@@ -51,19 +51,20 @@ class Po
             'msg' => null,
             'content' => null,
         );
-        $msg = null;
-        $content = null;
 
-        $string_parts = explode( '"', $line );
+        // Splits string with quote (") separtor
+        $parts = explode( '"', $line );
         
-        if ( count( $string_parts ) > 1 ) 
+        if ( count( $parts ) > 1 ) 
         {
-            $string = str_replace( ' ', '', $string_parts[0] );
+            // Get message type (and remove spaces)
+            $type = str_replace( ' ', '', $parts[0] );
 
-            if ( preg_match( '/^(msgstr\[[0-9]\])$/', $string ) || in_array( $string, $this->msg_types ) ) 
+            // Checks if message type is one we handle (plural or singular)
+            if ( preg_match( '/^(msgstr\[[0-9]\])$/', $type ) || in_array( $type, $this->msg_types ) ) 
             {
-                $msg = $string;
-                $content = $string_parts[1];
+                $result['msg'] = $type;
+                $result['content'] = $parts[1];
             }
         }
         
