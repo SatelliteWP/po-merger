@@ -12,7 +12,7 @@
 
 namespace satellitewp\po;
 
-require_once('po.php');
+use Gettext\Translations;
 
 /**
  * Creates a merged content, using the content of the base locale and the
@@ -20,57 +20,41 @@ require_once('po.php');
  * 
  * @see Po
  */
-class Po_Merger extends Po
+class Po_Merger
 {
     /**
-     * Tag to mark the translations that require revision.
+     * Base PO filename
      */
-    const FUZZY_TAG = '#, fuzzy';
-    
-    /**
-     * Content of the base locale *.po file with the merged translations from
-     * copy locale *.po file.
-     */
-    protected $merged_content = array();
+    protected $base_filename = null;
 
     /**
-     * Msgid strings of the copy locale *.po file.
+     * Copy PO filename
      */
-    protected $msgids_copy = array();
+    protected $copy_filename = null;
 
     /**
-     * Msgstr strings of the copy locale *.po file.
+     * Dictionary PO filename
      */
-    protected $msgstrs_copy = array();
-    
-    /**
-     * Plural msgid strings of the copy locale *.po file.
-     */
-    protected $msgids_plural_copy = array();
-    
-    /**
-     * Plural msgstr strings of the copy locale *.po file.
-     */
-    protected $msgstrs_plural_copy = array();
-
-    /**
-     * Plural forms of a translation (ie: msgstr[0], msgstr[1]...),
-     * based on the number of the plurals forms obtained from the *.po file.
-     */
-    protected $plural_forms = array();
+    protected $dictionary_filename = null;
     
     /**
      * Strings (words, expressions, etc) to search in a translation obtained from
-     * the copy locale. If found, the msgid of the translation will be marked with the
-     * @see self::FUZZY tag.
+     * the copy locale. If found, the msgid of the translation will be marked as fuzzt.
      */
     protected $fuzzy_strings = null;
 
     /**
      * Indicates if the msgid of a translation found in the copy locale and copied to the base locale
-     * should be marked with the @see self::FUZZY tag.
+     * should be marked as fuzzy.
      */
     protected $is_mcaf = false;
+
+    protected $stats = array(
+        'total'                   => 0,
+        'used-from-copy'          => 0,
+        'used-from-dictionary'    => 0,
+        'contained-fuzzy-strings' => 0
+    );
 
     /**
      * Constructor.
@@ -89,209 +73,164 @@ class Po_Merger extends Po
      * 
      * @param array $base_content Content of the base locale PO. 
      * @param array $copy_content Content of the copy locale PO.
+     * @param array $dictionary_content Content of the dictionary PO.
      */
-    public function initialize( $base_content, $copy_content ) 
+    public function initialize( $base_filename, $copy_filename, $dictionary_filename = null ) 
     {
-        // Copy the initial content from the base locale.
-        $this->merged_content = $base_content;
+        // Base filename
+        $this->base_filename = $base_filename;
         
-        $this->msgids_copy         = $copy_content['msgids'];
-        $this->msgids_plural_copy  = $copy_content['msgids_plural'];
-        $this->msgstrs_copy        = $copy_content['msgstrs'];
-        $this->msgstrs_plural_copy = $copy_content['msgstrs_plural'];
-        $this->plural_forms        = $copy_content['plural_forms'];
+        // Copy filename
+        $this->copy_filename = $copy_filename;
+        
+        // Dictionary filename
+        $this->dictionary_filename = $dictionary_filename;
     }
 
-     /**
+    /**
      * Verifies if in the base locale a given translation doesn't exist.
      * If it's the case, searches for the translation in the extracted msg
      * strings from the copy locale.
      * 
      * @return array Content of the base locale with the merged translations from the copy locale.
      */
-    public function merge_po() 
-    {        
-        // Index of an msgid in the base locale.
-        $msgid_index = 0;
+    public function merge( $filename )
+    {
+        $base = Translations::fromPoFile( $this->base_filename );
+        $copy = Translations::fromPoFile( $this->copy_filename );
+        $dict = ( $this->dictionary_filename != null ? Translations::fromPoFile( $this->dictionary_filename ) : null );
+        
+        // Stats
+        $used_from_dictionary = 0;
+        $used_from_copy = 0;
+        $contained_fuzzy_strings = 0;
 
-        for ( $i = 0; $i < count( $this->merged_content ); ++$i ) 
+        foreach( $base as $tr ) 
         {
-            $current = $this->merged_content[$i];
-            
-            // If it's an msg string.
-            if ( strpos( $current, $this->msg_types[self::MSGID] ) !== false  || 
-                 strpos( $current, $this->msg_types[self::MSGSTR] ) !== false ) 
+            // Check the dictionary, if defined.
+            $dict_tr = false;
+            if ( $dict != null)
             {
-                // Extract the msg part of the string.
-                $msg = $this->get_msg_and_content( $current )['msg'];
-                
-                // If it's not a plural msgstr, since they are a special case.
-                if ( !in_array( $msg, $this->plural_forms ) ) 
+                $dict_tr = $dict->find( $tr->getContext(), $tr->getOriginal() );
+            }
+
+            // If dictionary contains translation, we use it.
+            if ( $dict_tr !== false ) 
+            {
+                $tr->setTranslation( $dict_tr->getTranslation() );
+        
+                if ( $tr->hasPluralTranslations() ) {
+                    $tr->setPluralTranslations( $dict_tr->getPluralTranslations() );
+                }
+
+                if ( $this->is_mcaf )
                 {
-                    switch ( $msg ) 
-                    {
-                        // If it's an msgid string, save its index.
-                        case $this->msg_types[self::MSGID]:
-                            $msgid_index = $i;
-                            break;
+                    $tr->addFlag( 'fuzzy' );
+                }
+                elseif ( $this->has_fuzzy_strings( $tr ) )
+                {
+                    $tr->addFlag( 'fuzzy' );
 
-                        // Verify if the translation doesn't exist in the base locale and search for
-                        // it in the copy locale.
-                        case $this->msg_types[self::MSGSTR]:
-                            $this->process_singular_msgstr( $msgid_index, $i, $current );
-                            break;
+                    $contained_fuzzy_strings++;
+                }
 
-                        // Verify if the plural translations don't exist in the base locale and search 
-                        // for them in the copy locale.
-                        case $this->msg_types[self::MSGID_PLURAL]:
-                            $this->process_plural_msgstrs( $msgid_index, $i, $current );
-                            break;
+                $used_from_dictionary++;
+            }
+            elseif ( ! $tr->hasTranslation() ) 
+            {
+                $copy_tr = $copy->find( $tr->getContext(), $tr->getOriginal() );
+        
+                if ( $copy_tr !== false ) {
+                    $tr->setTranslation( $copy_tr->getTranslation() );
+        
+                    if ( $tr->hasPluralTranslations() ) {
+                        $tr->setPluralTranslations( $copy_tr->getPluralTranslations() );
                     }
+
+                    if ( $this->is_mcaf )
+                    {
+                        $tr->addFlag( 'fuzzy' );
+                    }
+                    elseif ( $this->has_fuzzy_strings( $tr ) )
+                    {
+                        $tr->addFlag( 'fuzzy' );
+
+                        $contained_fuzzy_strings++;
+                    }
+
+                    $used_from_copy++;
+                }
+            }
+            else
+            {
+                if ( $this->has_fuzzy_strings( $tr ) ) 
+                {
+                    $tr->addFlag( 'fuzzy' );
+
+                    $contained_fuzzy_strings++;
                 }
             }
         }
-        return $this->merged_content;
+
+        $result = count( $base );
+        if ( $result > 0 )
+        {
+            $base->toPoFile( $filename );
+        }
+
+        $this->stats = array(
+            'total'                   => $result,
+            'used-from-copy'          => $used_from_copy,
+            'used-from-dictionary'    => $used_from_dictionary,
+            'contained-fuzzy-strings' => $contained_fuzzy_strings
+        );
+        
+        return $result;
     }
 
     /**
-     * Processes a singular msgstr: if in the base locale a translation
-     * doesn't exist, search for it in the msgstr strings extracted from the copy locale.
-     * If the translation has been found, copy it to the base locale.
+     * Returns statistics compiled when a merge occured.
      * 
-     * The singular msgid and its msgstr will have the same index in their 
-     * corresponing arrays.
-     * 
-     * @param int $msgid_index Index of an msgid in the base locale.
-     * @param int $msgstr_index Index of an msgstr in the base locale.
-     * @param string $msgstr msgstr of the base locale.
+     * @return array Associative array containing statistics
      */
-    public function process_singular_msgstr( $msgid_index, $msgstr_index, $msgstr ) 
-    {   
-        // Get the msgid in the base locale.
-        $msgid = $this->merged_content[$msgid_index];
-
-        // Get the content of the msgstr.
-        $content_msgstr = $this->get_msg_and_content( $msgstr )['content'];
-        
-        // If the translation doesn't exist in the base locale.
-        if ( empty( $content_msgstr ) ) 
-        {
-            // Get the index of the msgid extracted from the copy locale.
-            $msgid_index_copy = array_search( $msgid, $this->msgids_copy );
-            
-            // Get the msgstr extracted from the copy locale.
-            $msgstr_copy = $this->msgstrs_copy[$msgid_index_copy];
-            $content_msgstr_copy = $this->get_msg_and_content( $msgstr_copy )['content'];
-            
-            if ( !empty( $content_msgstr_copy ) ) 
-            {
-                // Apply the "#, fuzzy" tag to the line preceding the msgid, if required.
-                if ( $this->is_mcaf && $msgid != 'msgid ""' ) 
-                {
-                    $this->merged_content[$msgid_index - 1] .= self::FUZZY_TAG . "\n";
-                }
-                
-                // Verify if a translation contains the strings that require revison and apply the "#, fuzzy" tag.
-                if ( !is_null( $this->fuzzy_strings ) ) 
-                {
-                    $this->process_fuzzy_strings( $msgid_index, $content_msgstr_copy );
-                }
-                
-                // Copy the found translation to the base locale.
-                $this->merged_content[$msgstr_index] = $msgstr_copy;
-            }
-        }
+    public function get_stats()
+    {
+        return $this->stats;
     }
 
-    /**
-     * Processes the plural msgstr strings: if in the base locale the translations
-     * don't exist, search for them in the msgstr plural strings extracted from the copy locale.
-     * If the translations have been found, copy them to the base locale.
-     * 
-     * For the plural cases, the msgstr will have the index of:
-     * (msgid_plural index * number of plural forms) + its number.
-     * Example: index of the msgid_plural = 1, plural forms = 2, searching msgstr[0]
-     * Index of msgstr[0]: (1 * 2) + 0
-     * Index of msgstr[1]: (1 * 2) + 1
-     * Etc... 
-     * 
-     * @param int $msgid_index Index of an msgid in the base locale.
-     * @param int $msgid_plural_index Index of an msgid_plural in the base locale.
-     * @param string $msgid_plural msgid_plural of the base locale.
-     */
-    public function process_plural_msgstrs( $msgid_index, $msgid_plural_index, $msgid_plural ) 
-    {   
-        // Get the msgid from the base locale.
-        $msgid = $this->merged_content[$msgid_index];
-        
-        // Get the index of the msgid_plural in the plural msgids extracted from the copy locale.
-        $msgid_plural_copy_index = array_search( $msgid_plural, $this->msgids_plural_copy );
-
-        // Indicates if $is_mcaf and $fuzzy_strings were processed already.
-        $params_processed = false;
-         
-        // See the formula in the description of the function.
-        if ( $msgid_plural_copy_index > 0 ) 
-        {
-            $msgid_plural_copy_index *= count ( $this->plural_forms );
-        }
-
-        // Based on the nubmer of the plural forms, veirfy each plural msgstr.
-        for ( $i = 0; $i < count( $this->plural_forms ); ++$i ) 
-        {
-            // Get the msgstr plural from the base locale content.
-            $msgstr = $this->merged_content[$msgid_plural_index + $i + 1];
-            $msgstr_content = $this->get_msg_and_content( $msgstr )['content'];
-
-            // If the translation doesn't exist in the base locale.
-            if ( empty( $msgstr_content ) ) 
-            {
-                // Search for the translation in the plural msgstr strings extracted from the copy locale.
-                $msgstr_copy = $this->msgstrs_plural_copy[$msgid_plural_copy_index + $i];
-                $content_msgstr_copy = $this->get_msg_and_content( $msgstr_copy )['content'];
-
-                if ( !empty( $content_msgstr_copy ) ) 
-                {
-                    if ( !$params_processed ) 
-                    {
-                        // Apply the "#, fuzzy" tag to the line preceding the msgid, if required.
-                        if ( $this->is_mcaf && $msgid != 'msgid ""' ) 
-                        {
-                            $this->merged_content[$msgid_index - 1] .= self::FUZZY_TAG . "\n";
-                        }
-                        
-                        // Verify if a translation contains the strings that require revison and apply the "#, fuzzy" tag.
-                        if ( !is_null( $this->fuzzy_strings ) ) 
-                        {
-                            $this->process_fuzzy_strings( $msgid_index, $content_msgstr_copy );
-                        }
-                        $params_processed = true;
-                    }
-                    
-                    // Copy the found translation to the base locale.
-                    $this->merged_content[$msgid_plural_index + $i + 1] = $msgstr_copy;
-                }
-            }
-        }
-    }
 
     /**
      * Verifies if the translation contains the strings specified in the $fuzzy_strings array. 
-     * If it's the case, applies the @see self::Fuzzy_TAG to the line in the base locale preceding the 
-     * specified msgid.
      * 
-     * @param int $msgid_index Index of an msgid in the base locale.
      * @param string $translation Translation to verify.
+     * 
+     * @return boolean True if contains fuzzy string. Otherwise, false.
      */
-    public function process_fuzzy_strings( $msgid_index, $translation ) 
+    public function has_fuzzy_strings( $translation ) 
     {
+        $result = false;
+
+        $to_check = array();
+
+        if ( $translation->hasTranslation())
+        {
+            $to_check[] = $translation->getTranslation();
+        }
+
+        if ( $translation->hasPluralTranslations() )
+        {
+            $to_check = $to_check + $translation->getPluralTranslations();
+        }
+
         foreach ( $this->fuzzy_strings as $fuzzy_string ) 
         {
             if ( mb_stripos( $translation, $fuzzy_string ) !== false ) 
             {
-                $this->merged_content[$msgid_index - 1] .= self::FUZZY_TAG . "\n";
+                $result = true;
                 break;
             }
         }
+
+        return $result;
     }
 }
