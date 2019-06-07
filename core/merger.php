@@ -6,7 +6,7 @@
  * WP PO Merger is a WP-CLI command that merges two PO files together to
  * make translation of two similar languages faste (e.g. fr vs fr-ca)
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @author SatelliteWP <info@satellitewp.com>
  */
 
@@ -46,54 +46,16 @@ class Merger {
     const REJECTED     = 'rejected';
     const OLD          = 'old'; 
 
-
-    
-    /**
-     * In the URL, idendifier of a user filter.
-     */
-    const USER_FILTER = 'user_login';
-
-    /**
-     * Filter parts.
-     */
-    const FILTER_BASE      = 'filters%5B';
-    const FILTER_SETTER    = '%5D=';
-    const FILTER_SEPARATOR = '&';
-
     /**
      * WordPress host.
      */
     const HOST = 'wordpress.org';
     
     /**
-     * WordPress translation host.
-     */
-    const TRANSLATION_HOST = 'translate.wordpress.org';
-    
-    /**
      * Release states.
      */
     const RELEASE_STABLE = 'stable';
     const RELEASE_DEV    = 'dev';
-
-    /**
-     * Core sub-projects defined in the download URL of a PO file.
-     */
-    const CORE_CC        = 'cc';
-    const CORE_ADMIN     = 'admin';
-    const CORE_ADMIN_NET = 'admin/network';
-
-    /**
-     * Full names of a core sub-projects.
-     */
-    const CORE_CC_NAME        = 'Continents & Cities';
-    const CORE_ADMIN_NAME     = 'Administration';
-    const CORE_ADMIN_NET_NAME = 'Network Admin';
-
-    /**
-     * Total number of the PO files in a core project (core plus sub-projects).
-     */
-    const CORE_PROJECTS = 4;
 
     /**
      * Folder in the root directory where the downloaded PO files will be temporarily saved.
@@ -138,23 +100,6 @@ class Merger {
                                              self::OLD 
                                     );
 
-    
-    /**
-     * Core sub-projects defined in the download URL of a PO file.
-     */
-    protected $core_sub_projects = array( self::CORE_CC, 
-                                          self::CORE_ADMIN, 
-                                          self::CORE_ADMIN_NET 
-                                    );
-    
-    /**
-     * Full names of the core sub-projects.
-     */
-    protected $core_sub_projects_names = array( self::CORE_CC_NAME, 
-                                                self::CORE_ADMIN_NAME, 
-                                                self::CORE_ADMIN_NET_NAME 
-                                        );
-
     /**
      * Received parameters.
      */
@@ -174,16 +119,6 @@ class Merger {
      * Contents of the file specified by the "fuzzy" parameter.
      */
     protected $fuzzy_strings = array();
-
-    /**
-     * Parameters of the result file(s).
-     */
-    protected $result_params = array();
-
-    /**
-     * Name of the result file(s).
-     */
-    protected $result_name = array();
 
     /**
      * Major core version for the download URL (ex: 5.0.x).
@@ -246,7 +181,6 @@ class Merger {
      */
     public function start() 
     {
-        \WP_CLI::line( 'Start' );
         if  ( isset( $this->params[self::MCAF] ) || isset( $this->params[self::MCAF_SHORT] ) ) 
         {
             $this->is_mcaf = true;
@@ -267,7 +201,6 @@ class Merger {
      */
     public function can_start() 
     {
-        \WP_CLI::line( 'Can start?' );
         $result = false;
         
         if ( $this->is_url ) 
@@ -313,7 +246,6 @@ class Merger {
                                 "Contained fuzzy strings: {$stats['contained-fuzzy-strings']}\n" . 
                                 ( $dictionary == null ? "" : "Copied from dictionary: {$stats['used-from-dictionary']}\n" ) . 
                                 "Copied from copy locale: {$stats['used-from-copy']}\n");
-
             }
         }
 
@@ -367,7 +299,6 @@ class Merger {
                     // Verify if the source is an URL or a core version.
                     case self::PO_SOURCE:
                         $source = $params[self::PO_SOURCE];
-    
                         $this->is_url = $this->is_url( $source );
                 
                         if ( $this->is_url ) 
@@ -540,37 +471,17 @@ class Merger {
         
         return $result;
     }
-    
-    /**
-     * Returns the latest error message.
-     * 
-     * @return string Error message.
-     */
-    public function get_error_message()
-    {
-        return $this->error_message;
-    }
 
     /**
-     * Returns the warning messages.
+     * Build Pos_Info array according to parameters
      * 
-     * @return array Warning messages.
-     */
-    public function get_warning_messages()
-    {
-        return $this->warning_messages;
-    }
-
-    /**
-     * Returns the path to the download folder in the root of the package.
+     * @param string $url The homepage url of the plugin/theme.
+     * @param string $base_locale Locale where the translations from the copy locale will be used.
+     * @param string $copy_locale Locale used to get translations that are not present in the base locale.
+     * @param string $core Major core version, or null if the parameter is not set.
      * 
-     * @return string Folder path.
+     * @return array Array of Pos_Info
      */
-    public function get_download_folder_path() 
-    {
-        return $this->download_folder_path;
-    }
-
     protected function build_pos_infos( $url, $base_locale, $copy_locale, $core )
     {
         $result = array();
@@ -619,7 +530,7 @@ class Merger {
      * @param string $copy_locale Locale used to get translations that are not present in the base locale.
      * @param string $core Major core version, or null if the parameter is not set.
      * 
-     * @return bool Indicates if the process was successful or not.
+     * @return bool True if the process was successful. Otherwise, false.
      */
     public function process_pos( $url, $base_locale, $copy_locale, $core ) 
     {
@@ -645,13 +556,18 @@ class Merger {
     {
         foreach( $this->pos_infos as $pi )
         {
-            $this->delete_po_file( $pi->get_base_filename() );
+            $this->delete_file( $pi->get_base_filename() );
 
-            $this->delete_po_file( $pi->get_copy_filename() );
+            $this->delete_file( $pi->get_copy_filename() );
         }
     }
 
-    public function delete_po_file( $filename )
+    /**
+     * Delete a file
+     * 
+     * @param string $filename File to delete
+     */
+    public function delete_file( $filename )
     {
         if ( is_file( $filename ) ) 
         {
@@ -710,8 +626,7 @@ class Merger {
                 elseif ( is_null( $copy_filename ) ) 
                 {
                     $this->error_message = 'The copy locale is invalid.';
-                }
-                
+                } 
             }
         }
     }
@@ -792,11 +707,36 @@ class Merger {
     {
         $length = strlen( $needle );
         
-        if ( $length == 0 ) 
-        {
-            return true;
-        }
-    
-        return ( substr( $haystack, -$length ) === $needle );
+        return ( $length == 0 ? true : substr( $haystack, -$length ) === $needle );
+    }
+
+    /**
+     * Returns the latest error message.
+     * 
+     * @return string Error message.
+     */
+    public function get_error_message()
+    {
+        return $this->error_message;
+    }
+
+    /**
+     * Returns the warning messages.
+     * 
+     * @return array Warning messages.
+     */
+    public function get_warning_messages()
+    {
+        return $this->warning_messages;
+    }
+
+    /**
+     * Returns the path to the download folder in the root of the package.
+     * 
+     * @return string Folder path.
+     */
+    public function get_download_folder_path() 
+    {
+        return $this->download_folder_path;
     }
 }
