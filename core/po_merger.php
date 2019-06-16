@@ -13,6 +13,7 @@
 namespace satellitewp\po;
 
 use Gettext\Translations;
+use Gettext\Merge;
 
 /**
  * Creates a merged content, using the content of the base locale and the
@@ -49,6 +50,13 @@ class Po_Merger
      */
     protected $is_mcaf = false;
 
+    /**
+     * Should we only output the difference in the output file ?
+     * In other words, output only new translations.
+     */
+    protected $is_difference_only = false;
+
+
     protected $stats = array(
         'total'                   => 0,
         'used-from-copy'          => 0,
@@ -61,11 +69,13 @@ class Po_Merger
      * 
      * @param array $fuzzy_string Strings (words, expressions, etc) that need to be revised in a translation.
      * @param boolean $is_mcaf Is "marked copy as fuzzy" activated?
+     
      */
     public function __construct( $fuzzy_strings, $is_mcaf )
     {
-        $this->fuzzy_strings = $fuzzy_strings;
-        $this->is_mcaf       = $is_mcaf;
+        $this->fuzzy_strings      = $fuzzy_strings;
+        $this->is_mcaf            = $is_mcaf;
+        
     }
 
     /**
@@ -74,8 +84,9 @@ class Po_Merger
      * @param array $base_content Content of the base locale PO. 
      * @param array $copy_content Content of the copy locale PO.
      * @param array $dictionary_content Content of the dictionary PO.
+     * @param boolean $is_difference_only Should we only output new translations ?
      */
-    public function initialize( $base_filename, $copy_filename, $dictionary_filename = null ) 
+    public function initialize( $base_filename, $copy_filename, $dictionary_filename = null, $is_difference_only = false ) 
     {
         // Base filename
         $this->base_filename = $base_filename;
@@ -85,6 +96,9 @@ class Po_Merger
         
         // Dictionary filename
         $this->dictionary_filename = $dictionary_filename;
+
+        // Is difference only ?
+        $this->is_difference_only = $is_difference_only;
     }
 
     /**
@@ -96,14 +110,21 @@ class Po_Merger
      */
     public function merge( $filename )
     {
+        $merged = new Translations();
         $base = Translations::fromPoFile( $this->base_filename );
         $copy = Translations::fromPoFile( $this->copy_filename );
         $dict = ( $this->dictionary_filename != null ? Translations::fromPoFile( $this->dictionary_filename ) : null );
         
+        // Init
+        $merged->mergeWith( $base, Merge::HEADERS_ADD | Merge::LANGUAGE_OVERRIDE | Merge::DOMAIN_OVERRIDE );
+
         // Stats
         $used_from_dictionary = 0;
         $used_from_copy = 0;
         $contained_fuzzy_strings = 0;
+
+        $count_progress = count( $base );
+        $progress = \WP_CLI\Utils\make_progress_bar( '', $count_progress );
 
         foreach( $base as $tr ) 
         {
@@ -127,12 +148,14 @@ class Po_Merger
                 {
                     $tr->addFlag( 'fuzzy' );
                 }
-                elseif ( $this->has_fuzzy_strings( $tr ) )
+                elseif ( $this->has_fuzzy_strings( $tr->getTranslation() ) )
                 {
                     $tr->addFlag( 'fuzzy' );
 
                     $contained_fuzzy_strings++;
                 }
+
+                $merged[] = $tr;
 
                 $used_from_dictionary++;
             }
@@ -147,10 +170,12 @@ class Po_Merger
                         $tr->setPluralTranslations( $copy_tr->getPluralTranslations() );
                     }
 
+                    // If we want copy to be marked as fuzzy, we add a flag.
                     if ( $this->is_mcaf )
                     {
                         $tr->addFlag( 'fuzzy' );
                     }
+                    // If it contains a fuzzy string, we add a flag.
                     elseif ( $this->has_fuzzy_strings( $tr ) )
                     {
                         $tr->addFlag( 'fuzzy' );
@@ -158,24 +183,36 @@ class Po_Merger
                         $contained_fuzzy_strings++;
                     }
 
+                    $merged[] = $tr;
+
                     $used_from_copy++;
                 }
             }
             else
             {
+                // If it contains a fuzzy string, we add it
                 if ( $this->has_fuzzy_strings( $tr ) ) 
                 {
                     $tr->addFlag( 'fuzzy' );
 
+                    $merged[] = $tr;
+
                     $contained_fuzzy_strings++;
                 }
+                // If we want all string, we add it
+                elseif ( ! $this->is_difference_only )
+                {
+                    $merged[] = $tr;
+                }
             }
+            $progress->tick();
         }
+        $progress->finish();
 
-        $result = count( $base );
+        $result = count( $merged );
         if ( $result > 0 )
         {
-            $base->toPoFile( $filename );
+            $merged->toPoFile( $filename );
         }
 
         $this->stats = array(
@@ -224,10 +261,13 @@ class Po_Merger
 
         foreach ( $this->fuzzy_strings as $fuzzy_string ) 
         {
-            if ( mb_stripos( $translation, $fuzzy_string ) !== false ) 
+            foreach($to_check as $str)
             {
-                $result = true;
-                break;
+                if ( mb_stripos( $str, $fuzzy_string ) !== false ) 
+                {
+                    $result = true;
+                    break 2;
+                }
             }
         }
 

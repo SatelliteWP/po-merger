@@ -226,9 +226,11 @@ class Merger {
         
         foreach( $this->pos_infos as $pi )
         {
-            $po_merger->initialize( $pi->get_base_filename(), $pi->get_copy_filename(), $dictionary );
+            $po_merger->initialize( $pi->get_base_filename(), $pi->get_copy_filename(), $dictionary, isset( $this->params[self::DIFF_ONLY] ) );
 
             $filename = getcwd() . '/' . $pi->get_download_filename( 'merged' );
+
+            \WP_CLI::line( 'Processing ' . $pi->get_project_name() . '...' );
             $count = $po_merger->merge( $filename );
 
             if ( $count === 0 )
@@ -239,9 +241,9 @@ class Merger {
             {
                 $stats = $po_merger->get_stats();
 
-                \WP_CLI::success( "Merge completed for PO file." );
+                \WP_CLI::success( "Merge completed for ". $pi->get_project_name() ." PO file." );
 
-                \WP_CLI::success(  "Stats for processed file:\n" .
+                \WP_CLI::line(  "Stats for processed file:\n" .
                                 "Total processed: {$stats['total']}\n" . 
                                 "Contained fuzzy strings: {$stats['contained-fuzzy-strings']}\n" . 
                                 ( $dictionary == null ? "" : "Copied from dictionary: {$stats['used-from-dictionary']}\n" ) . 
@@ -496,13 +498,13 @@ class Merger {
         // Set the filters for the download url.
         $filters = array(
             self::STATUS    => $this->status_filters,
-            self::DIFF_ONLY => ( isset( $this->params[self::DIFF_ONLY] ) ) ? $this->params[self::DIFF_ONLY] : null,
             self::USERNAME  => ( isset( $this->params[self::USERNAME] ) ) ? $this->params[self::USERNAME] : null
         );
 
         $pi = new Pos_Info( $base_locale, $copy_locale );
         $pi->set_env( $env );
         $pi->set_download_filters( $filters );
+        //$pi->set_difference_only( isset( $this->params[self::DIFF_ONLY] ) );
 
         $sub_projects = array();
         if ( $url != null ) 
@@ -581,7 +583,10 @@ class Merger {
      */
     public function download_pos_infos() 
     {   
-        foreach($this->pos_infos as $pi)
+        $count_progress = count( $this->pos_infos ) * 4;
+        $progress = \WP_CLI\Utils\make_progress_bar( 'Downloading PO files', $count_progress );
+
+        foreach( $this->pos_infos as $pi )
         {
             if ( isset( $this->params[self::TEST] ) ) 
             {
@@ -592,10 +597,12 @@ class Merger {
                 $base_url = $pi->get_base_download_url();
                 $base_filename = $this->download_file( $base_url, $pi->get_base_download_filename(), $this->download_folder_path );
                 $pi->set_base_filename( $base_filename );
-    
+                $progress->tick();
+
                 $copy_url = $pi->get_copy_download_url();
                 $copy_filename = $this->download_file( $copy_url, $pi->get_copy_download_filename(), $this->download_folder_path );
                 $pi->set_copy_filename( $copy_filename );
+                $progress->tick();
 
                 // If core download failed, try the dev project.
                 if ( $pi->is_core() && $base_filename == null && $copy_filename == null ) 
@@ -606,10 +613,18 @@ class Merger {
                     $base_url = $pi->get_base_download_url();
                     $base_filename = $this->download_file( $base_url, $pi->get_base_download_filename(), $this->download_folder_path );
                     $pi->set_base_filename( $base_filename );
-        
+                    $progress->tick();
+
                     $copy_url = $pi->get_copy_download_url();
                     $copy_filename = $this->download_file( $copy_url, $pi->get_copy_download_filename(), $this->download_folder_path );
                     $pi->set_copy_filename( $copy_filename );
+                    $progress->tick();
+                }
+                else
+                {
+                    // Base & Copy (so 2 times)
+                    $progress->tick();
+                    $progress->tick();
                 }
 
                 \WP_CLI::debug( "Base URL: " . $base_url . "\nFilename: " . $base_filename );
@@ -629,6 +644,7 @@ class Merger {
                 } 
             }
         }
+        $progress->finish();
     }
 
     /**

@@ -155,10 +155,10 @@ class Pos_Info
         
         if ( $this->is_core ) 
         {   
-            $sub_project = '';
-            if ( $this->core_sub_project_type != 'main' )
+            $sub_project = $this->core_sub_project_type . '-';
+            if ( $this->core_sub_project_type == 'main' )
             {
-                $sub_project = $this->core_sub_project_type . '-';
+                $sub_project = 'core-'; 
             }
 
             $result = 'wp-' . $this->url_version . '-' . $sub_project . $locale . $suffix . '.po';
@@ -399,10 +399,12 @@ class Pos_Info
             }
         }
         
+        /*
         if ( isset( $this->filters['diff-only'] ) ) 
         {
             $result .= $status_filter . 'untranslated' . self::FILTER_SEPARATOR;
         }
+        */
 
         if ( isset( $this->filters['username'] ) ) 
         {
@@ -447,8 +449,6 @@ class Pos_Info
     public static function is_valid_url_type( $path_parts ) 
     {
         $result = false;
-        
-        \WP_CLI::line( var_export( $path_parts ) );
 
         // Verify if it's the main page of a plugin/theme.
         if ( in_array( $path_parts[1], array( self::TYPE_URL_THEMES, self::TYPE_URL_PLUGINS ) ) ) 
@@ -701,4 +701,27 @@ class Pos_Info
             'admin-network' => 'Network Admin'
         );
     }
+
+    /**
+     * Should we only output the string that were not already
+     * translated in the output PO ?
+     * 
+     * @param bool $is_diff_only Is difference only in the output file ?
+     *
+    public function set_difference_only( $is_diff_only )
+    {
+        $this->is_difference_only = (bool) $is_diff_only;
+    }
+
+    /**
+     * Should we only output the string that were not already
+     * translated in the output PO ?
+     * 
+     * @return bool True if we display only the difference. Otherwise, false.
+     *
+    public function is_difference_only()
+    {
+        return $this->is_difference_only;
+    }
+    */
 }
