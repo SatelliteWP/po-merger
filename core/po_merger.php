@@ -148,7 +148,7 @@ class Po_Merger
                 {
                     $tr->addFlag( 'fuzzy' );
                 }
-                elseif ( $this->has_fuzzy_strings( $tr->getTranslation() ) )
+                elseif ( $this->has_fuzzy_strings( $tr ) )
                 {
                     $tr->addFlag( 'fuzzy' );
 
@@ -249,7 +249,7 @@ class Po_Merger
 
         $to_check = array();
 
-        if ( $translation->hasTranslation())
+        if ( $translation->hasTranslation() )
         {
             $to_check[] = $translation->getTranslation();
         }
