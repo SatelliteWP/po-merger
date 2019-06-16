@@ -60,6 +60,7 @@ Merging FR locale into FR-CA for WordPress 5.0
 | Parameter | Description |
 | ------ | ------ |
 | `--fuzzy=<file>` | Specifies a text file containing words or expressions (one per line) that will trigger a translation revision. If a translation from the copy locale contains these strings, the translation will be marked as fuzzy.|
+| `--dictionary=<file.po>` | Specifies a PO file containing master translations to use that were previously validated. These translations will be used before using the ones in the copy locale. It will also alter existing translations already approved in the base locale. |
 | `--mark-copy-as-fuzzy` | Marks the translations obtained from the copy locale as fuzzy.|
 | `--mcaf` | Alias of the `--mark-copy-as-fuzzy` parameter. |
 | `--status=<filter1>,<filter2>,...` |	Specifies the filter(s) for the base locale download URL. List of valid filters: current, untranslated, fuzzy, waiting, rejected, old. Some of the filters may be mutually exclusive.|
@@ -69,7 +70,7 @@ Merging FR locale into FR-CA for WordPress 5.0
 
 
 
-## Testing the commands locally
+## Testing the commands locally [ Tests are broken because of major refactoring ]
 
 A WordPress PO file may contain tens of thousands of lines and it can be difficult to verify the result of the merging process. Thus, the package allows to create small PO files locally and use them for merging.
 
