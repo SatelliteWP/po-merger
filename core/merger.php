@@ -235,7 +235,7 @@ class Merger {
 
             if ( $count === 0 )
             {
-                \WP_CLI::success( $pi->get_project_name() . ' is fully translated (or contains only waiting translations). No file generated.' );
+                \WP_CLI::warning( $pi->get_project_name() . ' is fully translated (or contains only waiting translations). No file generated.' );
             }
             else
             {
