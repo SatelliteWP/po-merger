@@ -627,8 +627,8 @@ class Merger {
                     $progress->tick();
                 }
 
-                \WP_CLI::debug( "Base URL: " . $base_url . "\nFilename: " . $base_filename );
-                \WP_CLI::debug( "\nCopy URL: " . $copy_url . "\nFilename: " . $copy_filename );
+                \WP_CLI::debug( "Base URL: " . $base_url . "\nFilename: " . $base_filename . "." );
+                \WP_CLI::debug( "\nCopy URL: " . $copy_url . "\nFilename: " . $copy_filename . "." );
 
                 if ( is_null( $base_filename ) && is_null( $copy_filename ) )
                 {

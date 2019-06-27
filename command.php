@@ -11,6 +11,8 @@
  */
 namespace satellitewp\po;
 
+require_once('core/po_file_merger.php');
+
 if ( !defined( 'WP_CLI' ) ) return;
 
 /**
@@ -46,7 +48,7 @@ class Po_Command extends \WP_CLI_Command {
 	 *
 	 * @when before_wp_load
 	 */
-	function merge( $args = array(), $assoc_args = array(), $verbose = true )
+	public function merge( $args = array(), $assoc_args = array(), $verbose = true )
 	{
 		$merger = new Merger( $args, $assoc_args );
 
@@ -72,6 +74,65 @@ class Po_Command extends \WP_CLI_Command {
 		else
 		{
 			\WP_CLI::error( $merger->get_error_message() );
+		}
+	}
+
+	/**
+	 * Merges two PO files
+	 * 
+	 * ## OPTIONS
+	 *
+	 *
+	 * <base-file>
+	 * : Base filename that will receive the translations.
+	 * 
+	 * <copy-file>
+	 * : Source where translations will be extracted.
+	 * 
+	 * 
+	 * [--max-length=<length>]
+	 * : Maximum string length to consider
+	 * default: 75
+	 * 
+	 * @subcommand merge-file
+	 * @when before_wp_load
+	 */
+	public function merge_file( $args = array(), $assoc_args )
+	{
+		if ( count( $args ) == 2 )
+		{
+			if ( ! is_readable( $args[0] ) )
+			{
+				\WP_CLI::error( 'The base PO file specified is not a readable file.' );
+			}
+			elseif ( ! is_readable( $args[1] ) )
+			{
+				\WP_CLI::error( 'The copy PO file specified is not a readable file.' );
+			}
+			else
+			{
+				$pfm = new Po_File_Merger( $args[0], $args[1] );
+
+				try
+				{
+					$pfm->load_files();
+				}
+				catch( InvalidArgumentException $ex ) 
+				{
+					\WP_CLI::error( 'PO files could not be loaded properly. Make sure they both are valid.' );
+				}
+				if ( isset( $assoc_args['max-length'] ) )
+				{
+					$max = (int) $assoc_args['max-length'];
+	
+					$pfm->set_max_length( $max );
+				}
+	
+				$pfm->merge();
+			}
+		}
+		else {
+			\WP_CLI::error( 'You must specify both the base PO file path and the copy PO file path.' );
 		}
 	}
 }

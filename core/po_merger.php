@@ -135,12 +135,13 @@ class Po_Merger
                 $dict_tr = $dict->find( $tr->getContext(), $tr->getOriginal() );
             }
 
-            // If dictionary contains translation, we use it.
-            if ( $dict_tr !== false ) 
+            // If dictionary contains translation and it's different, we use it.
+            if ( $dict_tr !== false && $dict_tr->getTranslation() != $tr->getTranslation() ) 
             {
                 $tr->setTranslation( $dict_tr->getTranslation() );
         
-                if ( $tr->hasPluralTranslations() ) {
+                if ( $tr->hasPluralTranslations() ) 
+                {
                     $tr->setPluralTranslations( $dict_tr->getPluralTranslations() );
                 }
 
@@ -166,7 +167,8 @@ class Po_Merger
                 if ( $copy_tr !== false ) {
                     $tr->setTranslation( $copy_tr->getTranslation() );
         
-                    if ( $tr->hasPluralTranslations() ) {
+                    if ( $tr->hasPluralTranslations() ) 
+                    {
                         $tr->setPluralTranslations( $copy_tr->getPluralTranslations() );
                     }
 
