@@ -43,6 +43,22 @@ class Po_File_Merger
     protected $copy = null;
 
     /**
+     * Mark merged translations as fuzzy for manual validation
+     * Boolean
+     */
+    protected $mark_copy_as_fuzzy = true;
+
+    /**
+     * Keep translations comments?
+     */
+    protected $keep_comments = false;
+
+    /**
+     * Keep translations references?
+     */
+    protected $keep_references = false;
+
+    /**
      * Max length of the original copy string to consider.
      */
     protected $max_length = 50;
@@ -58,9 +74,8 @@ class Po_File_Merger
     /**
      * Constructor.
      * 
-     * @param array $base_content Content of the base locale PO. 
-     * @param array $copy_content Content of the copy locale PO.
-     
+     * @param string $base_content Content of the base locale PO. 
+     * @param string $copy_content Content of the copy locale PO.
      */
     public function __construct( $base_filename, $copy_filename )
     {
@@ -91,11 +106,18 @@ class Po_File_Merger
     }
 
     /**
-     * Verifies if in the base locale a given translation doesn't exist.
-     * If it's the case, searches for the translation in the extracted msg
-     * strings from the copy locale.
+     * Mark copy as fuzzy ?
      * 
-     * @return array Content of the base locale with the merged translations from the copy locale.
+     * @param bool $value Mark merged translations as fuzzy for manual validation
+     */
+    public function set_mark_copy_as_fuzzy( $value )
+    {
+        $this->mark_copy_as_fuzzy = $value;
+    }
+
+    /**
+     * Verifies if, in the base file, a given translation doesn't exist from the copy file.
+     * If it does not exist, it is added to the base file.
      */
     public function merge()
     {
@@ -109,15 +131,28 @@ class Po_File_Merger
 
             if ( $tr->hasTranslation() && ! in_array( 'fuzzy', $flags ) ) 
             {
-                #\WP_CLI::warning( 'Has translation. Not fuzzy.' );
                 if ( strlen( $tr->getOriginal() ) <= $this->max_length || $this->max_length < 0 )
                 {
-                    #\WP_CLI::warning( 'Is under character length.' );
                     $translation = $this->base->find( $tr->getContext(), $tr->getOriginal() );
                     
                     if ( $translation === false )
                     {
-                        #\WP_CLI::warning( 'Translation does not exist.' );
+                        if ( $this->mark_copy_as_fuzzy ) 
+                        {
+                            $tr->addFlag( 'fuzzy' ) ;
+                        }
+
+                        if ( ! $this->keep_comments )
+                        {
+                            $tr->deleteComments();
+                        }
+
+                        if ( ! $this->keep_references )
+                        {
+                            $tr->deleteReferences();
+                        }
+
+                        // Add translation to base
                         $this->base[] = $tr;
                         $added++;
                     }
@@ -125,7 +160,6 @@ class Po_File_Merger
                     {
                         //We do nothing                        
                     }
-                    
                 }
             }
             $progress->tick();
@@ -144,4 +178,56 @@ class Po_File_Merger
             \WP_CLI::warning( 'No translations were merged.' );
         }
     }
+
+    /**
+     * Verifies if, in the base file, a given translation exist from the copy file.
+     * If it does not exist, it is added to the a new file.
+     */
+    public function diff()
+    {
+        $new = new Translations();
+        $count_progress = count( $this->copy );
+        $progress = \WP_CLI\Utils\make_progress_bar( 'Processing ' . $count_progress . ' translations of Copy PO file...', $count_progress );
+
+        $added = 0;
+        foreach( $this->copy as $tr ) 
+        {
+            $flags = $tr->getFlags();
+
+            if ( $tr->hasTranslation() && ! in_array( 'fuzzy', $flags ) ) 
+            {
+                if ( strlen( $tr->getOriginal() ) <= $this->max_length || $this->max_length < 0 )
+                {
+                    $translation = $this->base->find( $tr->getContext(), $tr->getOriginal() );
+                    
+                    if ( $translation === false )
+                    {
+                        $new[] = $tr;
+                        $added++;
+                    }
+                    else 
+                    {
+                        //We do nothing                        
+                    }
+                }
+            }
+            $progress->tick();
+        }
+        $progress->finish();
+
+        if ( $added > 0 )
+        {
+            //$file = 'diff-' . date( 'Y-m-d-H-i-s' ) . '.po';
+            $file = 'diff.po';
+            $new->toPoFile( $file );
+
+            $text = $added > 1 ? $added  . ' translations were found.' : $added . ' translation was found.';
+            \WP_CLI::success( $text . ' You can find them in the following file: ' . $file );
+        }
+        else
+        {
+            \WP_CLI::warning( 'No translations were found.' );
+        }
+    }
+
 }

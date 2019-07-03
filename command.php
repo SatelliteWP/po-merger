@@ -94,10 +94,87 @@ class Po_Command extends \WP_CLI_Command {
 	 * : Maximum string length to consider
 	 * default: 75
 	 * 
+	 * [--mark-copy-as-fuzzy]
+	 * : Mark copy as fuzzy in the base file
+	 * default: true
+	 * 
 	 * @subcommand merge-file
 	 * @when before_wp_load
 	 */
 	public function merge_file( $args = array(), $assoc_args )
+	{
+		if ( count( $args ) == 2 )
+		{
+			if ( ! is_readable( $args[0] ) )
+			{
+				\WP_CLI::error( 'The base PO file specified is not a readable file.' );
+			}
+			elseif ( ! is_readable( $args[1] ) )
+			{
+				\WP_CLI::error( 'The copy PO file specified is not a readable file.' );
+			}
+			else
+			{
+				$pfm = new Po_File_Merger( $args[0], $args[1] );
+
+				try
+				{
+					$pfm->load_files();
+				}
+				catch( InvalidArgumentException $ex ) 
+				{
+					\WP_CLI::error( 'PO files could not be loaded properly. Make sure they both are valid.' );
+				}
+
+				// Max length
+				if ( isset( $assoc_args['max-length'] ) )
+				{
+					$max = (int) $assoc_args['max-length'];
+	
+					$pfm->set_max_length( $max );
+
+					\WP_CLI::debug( 'Length: ' . $max );
+				}
+	
+				// Mark copy as fuzzy?
+				if ( isset( $assoc_args['mark-copy-as-fuzzy'] ) )
+				{
+					$value = ( $assoc_args['mark-copy-as-fuzzy'] === 'true' ? true : false );
+	
+					$pfm->set_mark_copy_as_fuzzy( $value );
+
+					\WP_CLI::debug( 'Mark copy as fuzzy?: ' . ($value ? 'true' : 'false' ) );
+				}
+
+				$pfm->merge();
+			}
+		}
+		else {
+			\WP_CLI::error( 'You must specify both the base PO file path and the copy PO file path.' );
+		}
+	}
+
+	/**
+	 * Get the difference two PO files
+	 * 
+	 * ## OPTIONS
+	 *
+	 *
+	 * <base-file>
+	 * : Base filename to validate.
+	 * 
+	 * <copy-file>
+	 * : Source where translations will be extracted.
+	 * 
+	 * 
+	 * [--max-length=<length>]
+	 * : Maximum string length to consider
+	 * default: 75
+	 * 
+	 * @subcommand diff
+	 * @when before_wp_load
+	 */
+	public function diff_file( $args = array(), $assoc_args )
 	{
 		if ( count( $args ) == 2 )
 		{
@@ -128,7 +205,7 @@ class Po_Command extends \WP_CLI_Command {
 					$pfm->set_max_length( $max );
 				}
 	
-				$pfm->merge();
+				$pfm->diff();
 			}
 		}
 		else {
