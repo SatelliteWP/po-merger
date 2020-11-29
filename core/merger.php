@@ -247,7 +247,8 @@ class Merger {
                                 "Total processed: {$stats['total']}\n" . 
                                 "Contained fuzzy strings: {$stats['contained-fuzzy-strings']}\n" . 
                                 ( $dictionary == null ? "" : "Copied from dictionary: {$stats['used-from-dictionary']}\n" ) . 
-                                "Copied from copy locale: {$stats['used-from-copy']}\n");
+                                "Copied from copy locale: {$stats['used-from-copy']}\n" .
+                                "Empty strings to translate: {$stats['empty-strings']}\n" );
             }
         }
 
