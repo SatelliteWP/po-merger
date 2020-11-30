@@ -57,7 +57,7 @@ class Pos_Info
     /**
      * Default parts of a PO file download URL.
      */
-    const URL_BASE = 'https://translate.wordpress.org/projects/wp';
+    const URL_BASE = 'https://translate.wordpress.org/projects/';
     const URL_END  = '/default/export-translations/?format=po';
 
     /**
@@ -201,7 +201,7 @@ class Pos_Info
     
             if ( $count >= 6 && $url_parts['host'] == self::TRANSLATION_HOST ) 
             {
-                $result = $parts[3];
+                $result = $parts[5];
             }
             elseif ( $count >= 3 )
             {
@@ -232,7 +232,7 @@ class Pos_Info
         $type = null;
         if ( $count >= 5 && $url_parts['host'] == self::TRANSLATION_HOST ) 
         {
-            $type = $parts[2];
+            $type = $parts[4];
         }
         elseif ( $count >= 2 )
         {
@@ -352,11 +352,17 @@ class Pos_Info
         else 
         {
             $type = $this->get_project_type();
-            $result .= '-' . $type . '/'. $this->get_project_name() . '/';
+
+            if ( self::TYPE_URL_PLUGINS == $type || self::TYPE_URL_THEMES == $type ) 
+            {
+                $result .= 'wp-';
+            }
+
+            $result .= $type . '/'. $this->get_project_name() . '/';
 
             if ( $type == self::TYPE_URL_PLUGINS ) 
             {
-                $result .= ($this->env == null ? 'stable' : $this->env ) . '/';
+                $result .= ( $this->env == null ? 'stable' : $this->env ) . '/';
             }
             elseif ( $type == self::TYPE_URL_APPS ) 
             {
@@ -449,7 +455,7 @@ class Pos_Info
     public static function is_valid_url_type( $path_parts ) 
     {
         $result = false;
-
+        
         // Verify if it's the main page of a plugin/theme.
         if ( in_array( $path_parts[1], array( self::TYPE_URL_THEMES, self::TYPE_URL_PLUGINS ) ) ) 
         {
@@ -460,7 +466,7 @@ class Pos_Info
             // Verify if it's a translate URL.
             if ( count( $path_parts ) >= 5 ) 
             {
-                if ( in_array( $path_parts[2], self::$url_translate_types ) ) 
+                if ( in_array( $path_parts[4], self::$url_translate_types ) ) 
                 {
                     $result = true;
                 }
@@ -490,7 +496,7 @@ class Pos_Info
         // If it's a translate URL.
         elseif ( $count >= 6 ) 
         {
-            if ( in_array( $path_parts[2], self::$url_translate_types ) && empty( $path_parts[3] ) ) 
+            if ( in_array( $path_parts[4], self::$url_translate_types ) && empty( $path_parts[5] ) ) 
             {
                 $result = true;
             }  
