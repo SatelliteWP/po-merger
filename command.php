@@ -101,7 +101,7 @@ class Po_Command extends \WP_CLI_Command {
 	 * @subcommand merge-file
 	 * @when before_wp_load
 	 */
-	public function merge_file( $args = array(), $assoc_args )
+	public function merge_file( $args = array(), $assoc_args = null )
 	{
 		if ( count( $args ) == 2 )
 		{
@@ -174,7 +174,7 @@ class Po_Command extends \WP_CLI_Command {
 	 * @subcommand diff
 	 * @when before_wp_load
 	 */
-	public function diff_file( $args = array(), $assoc_args )
+	public function diff_file( $args = array(), $assoc_args = null )
 	{
 		if ( count( $args ) == 2 )
 		{
