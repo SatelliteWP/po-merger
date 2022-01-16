@@ -9,7 +9,7 @@
         ],
       "description": "PO Merger is a WP-CLI command that merges two PO files together to make translation of two similar languages faste (e.g. fr vs fr-ca)",
       "require": {
-          "php": "^7.1",
+          "php": "^7.4",
           "gettext/gettext": "^4.6"
       },
       "autoload": {
