@@ -167,29 +167,45 @@ class Po_Merger
                 $copy_tr = $copy->find( $tr->getContext(), $tr->getOriginal() );
         
                 if ( $copy_tr !== false ) {
-                    $tr->setTranslation( $copy_tr->getTranslation() );
+
+                    if ( ! $copy_tr->hasTranslation() )
+                    {
+                        $merged[] = $tr;
+
+                        $empty_strings++;
+                    }
+                    else
+                    {
+                        $tr->setTranslation( $copy_tr->getTranslation() );
         
-                    if ( $tr->hasPluralTranslations() ) 
-                    {
-                        $tr->setPluralTranslations( $copy_tr->getPluralTranslations() );
+                        if ( $tr->hasPluralTranslations() ) 
+                        {
+                            $tr->setPluralTranslations( $copy_tr->getPluralTranslations() );
+                        }
+    
+                        // If we want copy to be marked as fuzzy, we add a flag.
+                        if ( $this->is_mcaf )
+                        {
+                            $tr->addFlag( 'fuzzy' );
+                        }
+                        // If it contains a fuzzy string, we add a flag.
+                        elseif ( $this->has_fuzzy_strings( $tr ) )
+                        {
+                            $tr->addFlag( 'fuzzy' );
+    
+                            $contained_fuzzy_strings++;
+                        }
+    
+                        $merged[] = $tr;
+    
+                        $used_from_copy++;
                     }
-
-                    // If we want copy to be marked as fuzzy, we add a flag.
-                    if ( $this->is_mcaf )
-                    {
-                        $tr->addFlag( 'fuzzy' );
-                    }
-                    // If it contains a fuzzy string, we add a flag.
-                    elseif ( $this->has_fuzzy_strings( $tr ) )
-                    {
-                        $tr->addFlag( 'fuzzy' );
-
-                        $contained_fuzzy_strings++;
-                    }
-
+                }
+                else 
+                {
                     $merged[] = $tr;
-
-                    $used_from_copy++;
+                    
+                    $empty_strings++;
                 }
                 else {
                     $empty_strings++;
