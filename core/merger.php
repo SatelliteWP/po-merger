@@ -6,7 +6,7 @@
  * WP PO Merger is a WP-CLI command that merges two PO files together to
  * make translation of two similar languages faste (e.g. fr vs fr-ca)
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @author SatelliteWP <info@satellitewp.com>
  */
 
@@ -247,7 +247,8 @@ class Merger {
                                 "Total processed: {$stats['total']}\n" . 
                                 "Contained fuzzy strings: {$stats['contained-fuzzy-strings']}\n" . 
                                 ( $dictionary == null ? "" : "Copied from dictionary: {$stats['used-from-dictionary']}\n" ) . 
-                                "Copied from copy locale: {$stats['used-from-copy']}\n");
+                                "Copied from copy locale: {$stats['used-from-copy']}\n" .
+                                "Empty strings to translate: {$stats['empty-strings']}\n" );
             }
         }
 

@@ -5,7 +5,7 @@
  * 
  * WP PO Merger is a WP-CLI command that merges two PO files together. 
  *
- * @version 1.0.0
+ * @version 1.2.0
  * @author SatelliteWP <info@satellitewp.com>
  */
 

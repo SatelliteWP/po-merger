@@ -6,7 +6,7 @@
  * WP PO Merger is a WP-CLI command that merges two PO files together to
  * make translation of two similar languages faste (e.g. fr vs fr-ca)
  *
- * @version 1.0.0
+ * @version 1.2.0
  * @author SatelliteWP <info@satellitewp.com>
  */
 
@@ -61,7 +61,8 @@ class Po_Merger
         'total'                   => 0,
         'used-from-copy'          => 0,
         'used-from-dictionary'    => 0,
-        'contained-fuzzy-strings' => 0
+        'contained-fuzzy-strings' => 0,
+        'empty-strings'           => 0
     );
 
     /**
@@ -119,9 +120,10 @@ class Po_Merger
         $merged->mergeWith( $base, Merge::HEADERS_ADD | Merge::LANGUAGE_OVERRIDE | Merge::DOMAIN_OVERRIDE );
 
         // Stats
-        $used_from_dictionary = 0;
-        $used_from_copy = 0;
+        $used_from_dictionary    = 0;
+        $used_from_copy          = 0;
         $contained_fuzzy_strings = 0;
+        $empty_strings           = 0;
 
         $count_progress = count( $base );
         $progress = \WP_CLI\Utils\make_progress_bar( '', $count_progress );
@@ -189,6 +191,9 @@ class Po_Merger
 
                     $used_from_copy++;
                 }
+                else {
+                    $empty_strings++;
+                }
             }
             else
             {
@@ -206,6 +211,8 @@ class Po_Merger
                 {
                     $merged[] = $tr;
                 }
+
+                $empty_strings++;
             }
             $progress->tick();
         }
@@ -221,7 +228,8 @@ class Po_Merger
             'total'                   => $result,
             'used-from-copy'          => $used_from_copy,
             'used-from-dictionary'    => $used_from_dictionary,
-            'contained-fuzzy-strings' => $contained_fuzzy_strings
+            'contained-fuzzy-strings' => $contained_fuzzy_strings,
+            'empty-strings'           => $empty_strings
         );
         
         return $result;
