@@ -207,9 +207,6 @@ class Po_Merger
                     
                     $empty_strings++;
                 }
-                else {
-                    $empty_strings++;
-                }
             }
             else
             {
