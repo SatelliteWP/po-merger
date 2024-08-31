@@ -269,7 +269,10 @@ class Pos_Info
         $result = null;
         $parts  = explode( '.', $version );
         
-        if ( count( $parts ) >= 2 ) 
+        if ( 'dev' == $version ) {
+            $result = 'dev';
+        }
+        else if ( count( $parts ) >= 2 ) 
         {
             $is_int = true;
 
@@ -347,7 +350,7 @@ class Pos_Info
             {
                 $sub_project = str_replace( '-', '/' , $this->core_sub_project_type ) . '/';
             }
-            $result .= '/' . $this->url_version . '/' . $sub_project;   
+            $result .= 'wp/' . $this->url_version . '/' . $sub_project;   
         }
         else 
         {
