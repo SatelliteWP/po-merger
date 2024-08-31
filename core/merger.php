@@ -660,11 +660,16 @@ class Merger {
     {
         $result = null;
 
-        // Verify if the file was downloaded successfully.
-        $fh = @fopen( $url, 'r' );
-        if ( $fh !== false )
-        {
-            if ( file_put_contents( $path . $filename, $fh ) !== false ) 
+        $ch = curl_init();
+        curl_setopt( $ch, CURLOPT_URL, $url );
+        curl_setopt( $ch, CURLOPT_FOLLOWLOCATION, true );
+        curl_setopt( $ch, CURLOPT_RETURNTRANSFER, true );
+        curl_setopt( $ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36' );
+    
+        $data = curl_exec( $ch );
+
+        if ( false !== $data ) {
+            if ( file_put_contents( $path . $filename, $data ) !== false ) 
             {
                 $result = $path . $filename;
             }
@@ -673,9 +678,10 @@ class Merger {
                 unlink( $path . $filename );
             }
 
-            fclose( $fh );
+            curl_close($ch);
         }
-
+    
+        #var_dump($url, $filename, $path, $result, $fh); exit;
         return $result;
     }
 
