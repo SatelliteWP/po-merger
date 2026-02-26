@@ -70,7 +70,7 @@ Merging FR locale into FR-CA for WordPress 5.0
 
 
 
-## Testing the commands locally [ Tests are broken because of major refactoring ]
+## Testing the commands locally (Tests are broken because of a refactoring in progress)
 
 A WordPress PO file may contain tens of thousands of lines and it can be difficult to verify the result of the merging process. Thus, the package allows to create small PO files locally and use them for merging.
 
